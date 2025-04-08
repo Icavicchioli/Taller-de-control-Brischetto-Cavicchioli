@@ -63,7 +63,7 @@ void loop() {
 
   angulo_accel = estimar_angulo_accel(accel_z,accel_y);
 
-  angulo = (1-ALFA)* angulo_gyro + ALFA*angulo_accel,
+  angulo = (1-ALFA) * angulo_gyro + ALFA*angulo_accel;
 
   matlab_send(angulo,angulo_gyro,angulo_gyro_diverge,angulo_accel);
 
