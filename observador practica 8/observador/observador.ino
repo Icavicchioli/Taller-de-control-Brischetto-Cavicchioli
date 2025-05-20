@@ -80,6 +80,8 @@ void loop() {
 
   error = ref + (angulo * 180/3.1415); //asi la referencia puede ser en grados
 
+  u = 0;
+
   observador(u, angulo);
 
   mover_servo(u);
@@ -87,7 +89,7 @@ void loop() {
   Serial.println(" ");
   Serial.print(angulo_estimado_print);
   Serial.print(velocidad_estimado_print);
-  Serial.println("");
+  Serial.println(" ");
 
 
   //Datos
@@ -153,17 +155,14 @@ float observador(float u, float angulo_medido){
   #define L11 0.5308
   #define L12 -3.0759
 
-  
-   
-
   static float angulo = 0;
   static float velocidad = 0;
   static float velocidad_estimado = 0;
   static float angulo_estimado = 0;
 
   // X(k+1)=A X(k) + X(K) U
-  angulo_estimado = a11 * angulo_estimado + a12 * velocidad_estimado + L11 * (angulo_medido - angulo_estimado); // es el mismo error para ambos pero se multuplica por cosas dferentes
-  velocidad_estimado = a21 * angulo_estimado + a22 * velocidad_estimado + L12 * (angulo_medido - angulo_estimado);
+  angulo_estimado = a11 * angulo_estimado + a12 * velocidad_estimado + L11 * (angulo_medido - angulo_estimado) + b11 * u; // es el mismo error para ambos pero se multuplica por cosas dferentes
+  velocidad_estimado = a21 * angulo_estimado + a22 * velocidad_estimado + L12 * (angulo_medido - angulo_estimado) + b12 * u;
 
   angulo_estimado_print = angulo_estimado;
   velocidad_estimado_print = velocidad_estimado;
