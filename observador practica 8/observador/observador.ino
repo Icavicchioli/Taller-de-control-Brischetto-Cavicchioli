@@ -42,6 +42,9 @@ void setup(void) {
   myservo.attach(5, 500, 2500);  //500 -> 0, 2500->180
   mover_servo(0);
 
+  //Potenciometro
+  pinMode(A0, INPUT);
+
   delay(1000);
 }
 
@@ -78,22 +81,24 @@ void loop() {
 
   angulo = (1 - ALFA) * angulo_gyro + ALFA * angulo_accel; // en radianes
 
-  error = ref + (angulo * 180/3.1415); //asi la referencia puede ser en grados
+  //OJO DONDE COLOCAR LA IMU
 
-  u = 0;
+  //error = ref + (angulo * 180/3.1415); //asi la referencia puede ser en grados
+
+  //Referencia
+  ref = analogRead(A0)*(2*0.52/1024.0) - 0.52; 
+  ref = ref;
+  
+  u = ref;
 
   observador(u, angulo);
 
-  mover_servo(u);
+  float ug = u*180/3.14;
 
-  Serial.println(" ");
-  Serial.print(angulo_estimado_print);
-  Serial.print(velocidad_estimado_print);
-  Serial.println(" ");
-
+  mover_servo(ug);
 
   //Datos
-  //matlab_send( error,  error1,  u,  u1, angulo);
+  matlab_send(angulo, angulo_estimado_print, gyro_x, velocidad_estimado_print, ref, 0, 0);
 
   unsigned long t2 = micros();
 
@@ -118,7 +123,7 @@ void mover_servo(float grados) {
   myservo.writeMicroseconds(pwm);
 }
 
-void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5) {
+void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5, float dato6, float dato7) {
   Serial.write("abcd");
   byte *b = (byte *)&dato1;
   Serial.write(b, 4);
@@ -129,6 +134,10 @@ void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5
   b = (byte *)&dato4;
   Serial.write(b, 4);
   b = (byte *)&dato5;
+  Serial.write(b, 4);
+  b = (byte *)&dato6;
+  Serial.write(b, 4);
+  b = (byte *)&dato7;
   Serial.write(b, 4);
 
   //etc con mas datos tipo float. Tambien podría pasarse como parámetro a esta funcion un array de floats.
@@ -169,5 +178,4 @@ float observador(float u, float angulo_medido){
  
   return 0;
   //return (-L11 * angulo_estimado);
-
 }
