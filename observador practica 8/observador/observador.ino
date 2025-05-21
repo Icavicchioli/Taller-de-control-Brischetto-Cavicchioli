@@ -65,7 +65,6 @@ void loop() {
   static float error1 = 0;
   static float error2 = 0;
 
-
   unsigned long t1 = micros();
 
   /* Get new sensor events with the readings */

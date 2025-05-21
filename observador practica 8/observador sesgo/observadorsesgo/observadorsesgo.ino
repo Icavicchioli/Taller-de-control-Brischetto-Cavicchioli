@@ -16,16 +16,14 @@ Adafruit_MPU6050 mpu;
 void mover_servo(float grados);
 float estimar_angulo_accel(float accel_z, float accel_y);
 float observador(float u, float angulo_medido);
+float observador_sesgo(float u, float velocidad_medido, float angulo_medido);
+
+void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5, float dato6, float dato7);
 
 void setup(void) {
   Serial.begin(115200);
   
-  while (!Serial){
-    Serial.println("Failed to find MPU6050 chip");
-    delay(10);  // will pause Zero, Leonardo, etc until serial console opens
-  }
 
-  
   // Try to initialize!
   if (!mpu.begin()) {
     Serial.println("Failed to find MPU6050 chip");
@@ -41,6 +39,10 @@ void setup(void) {
   //Init servo
   myservo.attach(5, 500, 2500);  //500 -> 0, 2500->180
   mover_servo(0);
+
+  //Potenciometro
+  pinMode(A0, INPUT);
+
 
   delay(1000);
 }
@@ -81,20 +83,20 @@ void loop() {
 
   error = ref + (angulo * 180/3.1415); //asi la referencia puede ser en grados
 
-  u = 0;
+  //Referencia
+  ref = analogRead(A0)*(2*0.52/1024.0) - 0.52; 
+  ref = ref;
+  
+  u = ref;
 
-  observador(u, angulo);
+  observador_sesgo(u, gyro_x, angulo);
 
-  mover_servo(u);
+  float ug = u*180/3.14;
 
-  Serial.println(" ");
-  Serial.print(angulo_estimado_print);
-  Serial.print(velocidad_estimado_print);
-  Serial.println(" ");
-
+  mover_servo(ug);
 
   //Datos
-  //matlab_send( error,  error1,  u,  u1, angulo);
+  matlab_send(angulo, angulo_estimado_print, gyro_x, velocidad_estimado_print, ref, sesgo_estimado_print, 0);
 
   unsigned long t2 = micros();
 
@@ -119,7 +121,7 @@ void mover_servo(float grados) {
   myservo.writeMicroseconds(pwm);
 }
 
-void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5) {
+void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5, float dato6, float dato7) {
   Serial.write("abcd");
   byte *b = (byte *)&dato1;
   Serial.write(b, 4);
@@ -131,9 +133,14 @@ void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5
   Serial.write(b, 4);
   b = (byte *)&dato5;
   Serial.write(b, 4);
+  b = (byte *)&dato6;
+  Serial.write(b, 4);
+  b = (byte *)&dato7;
+  Serial.write(b, 4);
 
   //etc con mas datos tipo float. Tambien podría pasarse como parámetro a esta funcion un array de floats.
 }
+
 
 
 float estimar_angulo_gyro(float gyro, float angulo_prev) {
@@ -173,7 +180,7 @@ float observador(float u, float angulo_medido){
 
 }
 
-float observador_sesgo(float u, float angulo_medido){
+float observador_sesgo(float u, float velocidad_medido, float angulo_medido){
   // las variables de las matrices discretizadas
 #define a11 1
 #define a12 0.02
@@ -189,9 +196,14 @@ float observador_sesgo(float u, float angulo_medido){
 #define b21 1.2978
 #define b31 0
 
-#define L1 0.0933
-#define L2 -0.9233
-#define L3 1.9461
+#define L11 0.4911
+#define L21 -3.085
+#define L31  0.288
+
+#define L12 0.0001
+#define L22 0.0007
+#define L32 0.53
+
 
   static float angulo = 0;
   static float velocidad = 0;
@@ -203,16 +215,18 @@ float observador_sesgo(float u, float angulo_medido){
   float salida_estimada = velocidad_estimado + sesgo_estimado;
 
   // Error entre la medida y la estimación
-  float error = angulo_medido - salida_estimada;
+  float error = velocidad_medido - salida_estimada;
+
+  float error_pos = angulo_medido - angulo_estimado;
 
   // X(k+1)=A X(k) + X(K) U
-  //angulo_estimado = a11 * angulo_estimado + a12 * velocidad_estimado + a13 * sesgo_estimado + L1 * error + b1 * u;
-  velocidad_estimado = a21 * angulo_estimado + a22 * velocidad_estimado + a23 * sesgo_estimado + L2 * error + b2 * u;
-  sesgo_estimado = a31 * angulo_estimado + a32 * velocidad_estimado + a33 * sesgo_estimado + L3 * error + b3 * u;
+  angulo_estimado = a11 * angulo_estimado + a12 * velocidad_estimado + a13 * sesgo_estimado + L11*error_pos + L12 * error + b11 * u;
+  velocidad_estimado = a21 * angulo_estimado + a22 * velocidad_estimado + a23 * sesgo_estimado+ L21*error_pos + L22 * error + b21 * u;
+  sesgo_estimado = a31 * angulo_estimado + a32 * velocidad_estimado + a33 * sesgo_estimado + L31*error_pos +L32 * error + b31 * u;
   
   
   angulo_estimado_print = angulo_estimado;
-  velocidad_estimado_print = velocidad_estimado;
+  velocidad_estimado_print = velocidad_estimado+sesgo_estimado;
   sesgo_estimado_print = sesgo_estimado;
  
   return 0;
