@@ -73,11 +73,11 @@ xlabel("Tiempo[s]")
 ylabel("Posicion [m]")
 
 %Proporcional integral
-muestras = 700;
+muestras = 1000;
 t = 0:Ts:(muestras-1)*Ts;
 
 figure();
-plot(t, -step_pi(1:muestras))
+plot(t, -step_pi_v2(1:muestras))
 hold
 plot(t, step_pi_sim(1:muestras))
 title("Escalon 0.1 proporcional integral");
@@ -87,7 +87,7 @@ xlabel("Tiempo[s]")
 ylabel("Posicion [m]")
 
 %Proporcional Derivativo
-muestras = 500;
+muestras = 700;
 t = 0:Ts:(muestras-1)*Ts;
 
 figure();

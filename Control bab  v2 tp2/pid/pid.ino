@@ -46,7 +46,7 @@ float Ik_matlab = 0;
 
 void loop() {
 
-  static float ref = 0;
+  static float ref = -0.1;
   static float angulo = 0;
   static float angulo_gyro = 0;
   static float angulo_accel = 0;
@@ -137,7 +137,7 @@ float estimar_angulo_accel(float accel_z, float accel_y) {
 
 float PID_bilineal(float ref, float medicion){
 
-  float kp = 2.6, kd = 0.0012, ki = 0, Ts = 0.02; //tp2
+  float kp = 2.5, kd = 0, ki = 0.5, Ts = 0.02; //tp2
   //float kp = 0.15, kd = 0.0000008, ki = 0.07, Ts = 0.02; //actividad en clase
   
   float uk = 0;
