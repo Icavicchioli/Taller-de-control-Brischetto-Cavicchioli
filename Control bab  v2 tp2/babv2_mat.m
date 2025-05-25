@@ -56,6 +56,9 @@ plot(t, step_prop_sim(1:muestras))
 title("Escalon 0.1 proporcional");
 grid;
 legend("Planta real", "Simulink")
+xlabel("Tiempo[s]")
+ylabel("Posicion [m]")
+
 muestras = 400;
 t = 0:Ts:(muestras-1)*Ts;
 
@@ -63,12 +66,13 @@ figure();
 plot(t, impulso_prop(1:muestras))
 hold
 plot(t, impulso_prop_sim(1:muestras))
-title("impulso 0.05 proporcional");
+title("Impulso 0.05 proporcional");
 legend("Planta real", "Simulink")
 grid;
+xlabel("Tiempo[s]")
+ylabel("Posicion [m]")
 
 %Proporcional integral
-
 muestras = 700;
 t = 0:Ts:(muestras-1)*Ts;
 
@@ -79,6 +83,8 @@ plot(t, step_pi_sim(1:muestras))
 title("Escalon 0.1 proporcional integral");
 legend("Planta real", "Simulink")
 grid;
+xlabel("Tiempo[s]")
+ylabel("Posicion [m]")
 
 %Proporcional Derivativo
 muestras = 500;
@@ -91,7 +97,8 @@ plot(t, step_pd_sim(1:muestras))
 title("Escalon 0.1 proporcional derivativo");
 grid;
 legend("Planta real", "Simulink")
-
+xlabel("Tiempo[s]")
+ylabel("Posicion [m]")
 muestras = 500;
 t = 0:Ts:(muestras-1)*Ts;
 
@@ -102,4 +109,5 @@ plot(t, impulso_pd_sim(1:muestras))
 title("Impulso 0.05 proporcional derivativo");
 legend("Planta real", "Simulink")
 grid;
-
+xlabel("Tiempo[s]")
+ylabel("Posicion [m]")
