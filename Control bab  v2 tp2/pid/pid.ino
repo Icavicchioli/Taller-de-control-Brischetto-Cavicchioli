@@ -70,8 +70,8 @@ void loop() {
   */
 
   //Medicion de distancia
-  distance = (sonar.ping() ) * (0.343/2); // microseg a mm
-  distance -= 157; //ajusto el cero
+  distance = (sonar.ping() ) * (0.343/2) * (1.0/1000.0); // microseg a mm
+  distance -= 157.0* (1.0/1000.0); //ajusto el cero
   
   //Controlador de posicion PID
   u = PID_bilineal(ref, distance);
@@ -97,11 +97,11 @@ void mover_servo(float grados) {
 
   g = grados;
 
-  if(g > 40) g = 40;
-  if(g < -40) g = -40;
+  if(g > 40) g = 0.7;
+  if(g < -40) g = -0.7;
   
   float pwm = 0;
-  pwm = (g * 2000.0 / 180) + 1500;
+  pwm = (g * 2000.0 / 3.14) + 1500;
   myservo.writeMicroseconds(pwm);
 }
 
@@ -137,8 +137,8 @@ float estimar_angulo_accel(float accel_z, float accel_y) {
 
 float PID_bilineal(float ref, float medicion){
 
-  //float kp = 0.2, kd = 0, ki = 0.07, Ts = 0.02; //tp2
-  float kp = 0.15, kd = 0.0000008, ki = 0.07, Ts = 0.02; //actividad en clase
+  float kp = 2.6, kd = 0.0012, ki = 0, Ts = 0.02; //tp2
+  //float kp = 0.15, kd = 0.0000008, ki = 0.07, Ts = 0.02; //actividad en clase
   
   float uk = 0;
   static float ek_1 = 0, ek = 0, Dk = 0, Ik = 0;

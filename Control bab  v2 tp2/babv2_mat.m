@@ -2,11 +2,17 @@ clc; close all; clear vars;
 
 Ts = 0.02;
 s = tf('s');
+
+P = (569.88) * (1/s) * (1/(s+3.81)) * (1/(s^2 + 20.74*s + 154.5));
+
 %Controlador proporcional
-Cp = 0.2;
+Cp = 3.2;
 
 %Bode
-%figure;
+figure;
+bode(Cp*P);
+grid();
+title("Proporcional")
 
 
 %Paso a digital
@@ -14,21 +20,86 @@ Cdp = c2d(tf(Cp), Ts, 'tustin');
 
 
 %% Control proporcional integral
-
-Cpi = db2mag(0)*(1/s)*(s+1);
+Cpi = pid(2.5, 0.5, 0);
 
 %Bode
-%figure;
-%bode(Cpi*P)
+figure;
+bode(Cpi*P);
+grid();
+title("Proporcional Integral")
 
 %Paso a digital
 Cdpi = c2d(tf(Cpi), Ts, 'tustin');
 
 %% Control proporcional derivativo
-
-Cpd = db2mag(-5.4)*(s+1)/(s+10); %agregue un polo para regularizar
+Cpd = pid(2.6, 0, 0.0012);
 
 %Bode
-%figure;
+figure;
+bode(Cpd*P);
+grid();
+title("Proporcional Derivativo")
+
 %Paso a digital
 Cdpd = c2d(tf(Cpd), Ts, 'tustin');
+
+
+%% Graficos
+muestras = 400;
+t = 0:Ts:(muestras-1)*Ts;
+
+%Proporcional
+figure();
+plot(t, -step_prop(1:muestras))
+hold
+plot(t, step_prop_sim(1:muestras))
+title("Escalon 0.1 proporcional");
+grid;
+legend("Planta real", "Simulink")
+muestras = 400;
+t = 0:Ts:(muestras-1)*Ts;
+
+figure();
+plot(t, impulso_prop(1:muestras))
+hold
+plot(t, impulso_prop_sim(1:muestras))
+title("impulso 0.05 proporcional");
+legend("Planta real", "Simulink")
+grid;
+
+%Proporcional integral
+
+muestras = 700;
+t = 0:Ts:(muestras-1)*Ts;
+
+figure();
+plot(t, -step_pi(1:muestras))
+hold
+plot(t, step_pi_sim(1:muestras))
+title("Escalon 0.1 proporcional integral");
+legend("Planta real", "Simulink")
+grid;
+
+%Proporcional Derivativo
+muestras = 500;
+t = 0:Ts:(muestras-1)*Ts;
+
+figure();
+plot(t, -step_pd(1:muestras))
+hold
+plot(t, step_pd_sim(1:muestras))
+title("Escalon 0.1 proporcional derivativo");
+grid;
+legend("Planta real", "Simulink")
+
+muestras = 500;
+t = 0:Ts:(muestras-1)*Ts;
+
+figure();
+plot(t, impulso_pd(1:muestras))
+hold
+plot(t, impulso_pd_sim(1:muestras))
+title("Impulso 0.05 proporcional derivativo");
+legend("Planta real", "Simulink")
+grid;
+

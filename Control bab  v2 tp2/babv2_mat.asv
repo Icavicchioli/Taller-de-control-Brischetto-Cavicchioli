@@ -1,0 +1,62 @@
+clc; close all; clear vars;
+
+Ts = 0.02;
+s = tf('s');
+
+P = (569.88) * (1/s) * (1/(s+3.81)) * (1/(s^2 + 20.74*s + 154.5));
+
+%Controlador proporcional
+Cp = 3.2;
+
+%Bode
+figure;
+bode(Cp*P);
+grid();
+
+%Paso a digital
+Cdp = c2d(tf(Cp), Ts, 'tustin');
+
+
+%% Control proporcional integral
+
+Cpi = pid(2.5, 0.5,0);
+
+Bode
+figure;
+bode(Cpi*P)
+
+%Paso a digital
+Cdpi = c2d(tf(Cpi), Ts, 'tustin');
+
+%% Control proporcional derivativo
+
+Cpd = db2mag(-5.4)*(s+1)/(s+10); %agregue un polo para regularizar
+
+%Bode
+%figure;
+%Paso a digital
+Cdpd = c2d(tf(Cpd), Ts, 'tustin');
+
+
+%% Graficos
+muestras = 400;
+t = 0:Ts:(muestras-1)*Ts;
+
+%Proporcional
+figure();
+plot(t, -step_prop(1:muestras))
+hold
+plot(t, step_prop_sim(1:muestras))
+title("Escalon 0.1 proporcional");
+grid;
+
+%Proporcional
+muestras = 400;
+t = 0:Ts:(muestras-1)*Ts;
+
+figure();
+plot(t, impulso_prop(1:muestras))
+hold
+plot(t, impulso_prop_sim(1:muestras))
+title("impulso 0.05 proporcional");
+grid;
