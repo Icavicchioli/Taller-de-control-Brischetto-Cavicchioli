@@ -137,7 +137,7 @@ float estimar_angulo_accel(float accel_z, float accel_y) {
 
 float PID_bilineal(float ref, float medicion){
 
-  float kp = 2.5, kd = 0, ki = 0.5, Ts = 0.02; //tp2
+  float kp = 2.5, kd = 0, ki = 0.4, Ts = 0.02; //tp2
   //float kp = 0.15, kd = 0.0000008, ki = 0.07, Ts = 0.02; //actividad en clase
   
   float uk = 0;

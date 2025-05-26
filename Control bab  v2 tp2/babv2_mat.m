@@ -73,7 +73,7 @@ xlabel("Tiempo[s]")
 ylabel("Posicion [m]")
 
 %Proporcional integral
-muestras = 1000;
+muestras = 800;
 t = 0:Ts:(muestras-1)*Ts;
 
 figure();
@@ -85,6 +85,14 @@ legend("Planta real", "Simulink")
 grid;
 xlabel("Tiempo[s]")
 ylabel("Posicion [m]")
+
+figure();
+plot(t, -step_pi_error(1:muestras))
+title("Escalon 0.1 error proporcional integral");
+legend("Planta real")
+grid;
+xlabel("Tiempo[s]")
+ylabel("error [m]")
 
 %Proporcional Derivativo
 muestras = 700;
