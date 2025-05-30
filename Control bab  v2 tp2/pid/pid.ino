@@ -97,8 +97,8 @@ void mover_servo(float grados) {
 
   g = grados;
 
-  if(g > 40) g = 0.7;
-  if(g < -40) g = -0.7;
+  if(g > 0.7) g = 0.7;
+  if(g < -0.7) g = -0.7;
   
   float pwm = 0;
   pwm = (g * 2000.0 / 3.14) + 1500;

@@ -3,26 +3,32 @@
 #include <Wire.h>
 #include <math.h>
 #include <Servo.h>
+#include <NewPing.h>
+
+//Definiciones ctes
 #define DELTA 0.02
 #define ALFA 0.05
 #define MAX_ABS 45
 #define PI 3.1415
 
+//Definiciones pines
+#define ECHO_PIN 6
+#define TRIGGER_PIN 7
+
+NewPing sonar(TRIGGER_PIN,ECHO_PIN, 100);
 Servo myservo;
 Adafruit_MPU6050 mpu;
 
+//Prototipos
 void mover_servo(float grados);
 float estimar_angulo_accel(float accel_z, float accel_y);
-float observador(float u, float angulo_medido);
-float observador_sesgo(float u, float velocidad_medido, float angulo_medido);
-
-void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5, float dato6, float dato7);
+float observador(float u, float x1_med, float x3_med);
+void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5, float dato6, float dato7, float dato8);
 
 void setup(void) {
   Serial.begin(115200);
   
-
-  // Try to initialize!
+  // Inicializar IMU
   if (!mpu.begin()) {
     Serial.println("Failed to find MPU6050 chip");
     while (1) {
@@ -44,9 +50,11 @@ void setup(void) {
   delay(1000);
 }
 
-float angulo_estimado_print = 0;
-float velocidad_estimado_print = 0;
-float sesgo_estimado_print = 0;
+//Variables globales
+float x1_est_print = 0;
+float x2_est_print = 0;
+float x3_est_print = 0;
+float x4_est_print = 0;
 
 void loop() {
 
@@ -55,10 +63,11 @@ void loop() {
   static float angulo_gyro = 0;
   static float angulo_accel = 0;
   static float u = 0;
+  static float posicion = 0;
 
   unsigned long t1 = micros();
 
-  //Medicion de angulos
+  //Medicion de angulo
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
 
@@ -71,16 +80,20 @@ void loop() {
 
   angulo = (1 - ALFA) * angulo_gyro + ALFA * angulo_accel; // en radianes
 
+  //Medicion de posicion 
+  posicion = (sonar.ping() ) * (0.343/2.0) * (1.0/1000.0); // microseg a m
+  posicion -= 0.157; //ajusto el cero
+
   //Referencia
   ref = analogRead(A0)*(2*0.52/1024.0) - 0.52; 
   u = ref;
   
-  observador(u, angulo);
+  observador(u, posicion, angulo);
 
   mover_servo(u);
 
   //Datos
-  matlab_send(angulo, angulo_estimado_print, gyro_x, velocidad_estimado_print, ref, sesgo_estimado_print, 0);
+  matlab_send(posicion, x1_est_print, 0/*Velocidad*/, x2_est_print, angulo, x3_est_print, gyro_x, x4_est_print);
 
   unsigned long t2 = micros();
 
@@ -105,7 +118,7 @@ void mover_servo(float grados) {
   myservo.writeMicroseconds(pwm);
 }
 
-void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5, float dato6, float dato7) {
+void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5, float dato6, float dato7, float dato8) {
   Serial.write("abcd");
   byte *b = (byte *)&dato1;
   Serial.write(b, 4);
@@ -121,9 +134,9 @@ void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5
   Serial.write(b, 4);
   b = (byte *)&dato7;
   Serial.write(b, 4);
-
-  //etc con mas datos tipo float. Tambien podría pasarse como parámetro a esta funcion un array de floats.
-}
+  b = (byte *)&dato8;
+  Serial.write(b, 4);
+  }
 
 
 float estimar_angulo_gyro(float gyro, float angulo_prev) {
@@ -135,16 +148,38 @@ float estimar_angulo_accel(float accel_z, float accel_y) {
   return anguloRadianes;
 }
 
-float observador(float u, float angulo_medido){
-  // las variables de las matrices discretizadas
-  const float A[4][4] =  {{1, 0.02, 0, 0},
+float observador(float u, float x1_med, float x3_med){
+  // Matrices discretizadas
+  const float Ad[4][4] =  {{1, 0.02, 0, 0},
                           {0, 0.9238, 0.1756, 0},
                           {0, 0, 1.0000, 0.0200},
                           {0, 0, -3.0896, 0.5852}};
 
   const float Bd[4] = {0, 0, 0, 1.2978}; 
-         
- 
-  return 0;
 
+  const float Ld[4][2] = {{1.1349, 0},
+                         {13.9806 , 0.1756},
+                         {0, 0.7963},
+                         {0, -1.3004}};
+
+  static float x1_est = 0, x2_est = 0, x3_est = 0, x4_est = 0;
+
+  //Cambio de notacion
+  float y1_med = x1_med;
+  float y2_med = x3_med;
+  float y1_est = x1_est;
+  float y2_est = x3_est;
+
+  x1_est =  Ad[0][0]*x1_est + Ad[0][1]*x2_est + Ad[0][2]*x3_est + Ad[0][3]*x4_est + Ld[0][0] * (y1_med - y1_est) + Ld[0][1] * (y2_med - y2_est) + Bd[0] * u;
+  x2_est =  Ad[1][0]*x1_est + Ad[1][1]*x2_est + Ad[1][2]*x3_est + Ad[1][3]*x4_est + Ld[1][0] * (y1_med - y1_est) + Ld[1][1] * (y2_med - y2_est) + Bd[1] * u;
+  x3_est =  Ad[2][0]*x1_est + Ad[2][1]*x2_est + Ad[2][2]*x3_est + Ad[2][3]*x4_est + Ld[2][0] * (y1_med - y1_est) + Ld[2][1] * (y2_med - y2_est) + Bd[2] * u;
+  x4_est =  Ad[3][0]*x1_est + Ad[3][1]*x2_est + Ad[3][2]*x3_est + Ad[3][3]*x4_est + Ld[3][0] * (y1_med - y1_est) + Ld[3][1] * (y2_med - y2_est) + Bd[3] * u;
+
+  //Variables de ploteo 
+  x1_est_print = x1_est;
+  x2_est_print = x2_est;
+  x3_est_print = x3_est;
+  x4_est_print = x4_est;
+
+  return 0;
 }

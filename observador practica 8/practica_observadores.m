@@ -26,7 +26,10 @@ Ts = 0.02;
 Ad = eye(2) + Ts*A; 
 Bd = P.B*Ts;
 
-Ld = exp(Ts*L);
-
 Ld = acker(Ad',Cd',[0.486 0.486])';
+
+%Calculo la matriz K
+Kd = acker(Ad, -Bd, [0.697 0.697]);
+
+
 

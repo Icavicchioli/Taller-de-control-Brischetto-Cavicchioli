@@ -36,16 +36,16 @@ rank(obsv(Ad,Cd))
  
 Ld = place(Ad',Cd',polos_discretos)'
 
-eig(Ad - Ld*Cd)
+eig(Ad - Ld*Cd);
 
 %% 
 %K = acker(A,-B,[-18 -18])
 
-Kd = acker(Ad,-Bd,[0.65 0.65])
+%Kd = acker(Ad,-Bd,[0.65 0.65])
 
-eig(Ad + Bd*Kd)
+%eig(Ad + Bd*Kd)
 
-Fd = (Cd*((eye(2) - (Ad + Bd*Kd))^(-1)) *Bd)^(-1)
+%Fd = (Cd*((eye(2) - (Ad + Bd*Kd))^(-1)) *Bd)^(-1)
 %F = (C*((eye(2) - (A + B*K))^(-1)) *B)^(-1)
 
 
