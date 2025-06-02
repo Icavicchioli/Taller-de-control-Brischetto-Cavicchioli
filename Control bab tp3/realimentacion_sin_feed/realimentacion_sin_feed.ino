@@ -103,13 +103,13 @@ void loop() {
   delayMicroseconds(diffUS);
 }
 
-float state_feedback_sin_feed(x1_est, x2_est, x3_est, x4_est){
+float state_feedback_sin_feed(float x1_est, float x2_est, float x3_est, float x4_est){
   float u = 0;
   float K[4] = {-3.9340, -0.9499, -0.8737, -0.0781};
 
   u = x1_est*K[0] + x2_est*K[1] + x3_est*K[2] + x4_est*K[3];
 
-  return u
+  return u;
 }
 
 
