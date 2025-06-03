@@ -22,7 +22,7 @@ Bd = B*Ts;
 %% Armo las matrices con accion integral
 %En este caso, por el obs, tenemos todos los estados, por ende C = I
 
-C = [1 0 0 0 ];
+C = [1 0 0 0];
 Cd = C;
 
 % Armo la matriz combinacion de Ad y Cd (nota: Consultar col de unos)
@@ -33,7 +33,7 @@ Ad_aug = [Ad , zeros([4,1]);
 Bd_aug = [Bd; 0];
 
 %Hago el pole placement para hallar K_aug (el ultimo es k_integral)
-polos_nuevos = [-4+2i ; -4-2i ; -12.2957+1.80971i; -12.2957-1.80971i; -2];
+polos_nuevos = [-8+2i ; -8-2i ; -20.2957+1.80971i; -20.2957-1.80971i; -5];
 polos_discretos = exp(Ts*polos_nuevos);
 
 K_aug = place(Ad_aug, -Bd_aug, polos_discretos);
