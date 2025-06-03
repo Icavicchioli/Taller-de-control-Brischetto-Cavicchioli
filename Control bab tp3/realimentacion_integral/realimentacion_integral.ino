@@ -23,7 +23,7 @@ Adafruit_MPU6050 mpu;
 void mover_servo(float grados);
 float estimar_angulo_accel(float accel_z, float accel_y);
 float observador(float u, float x1_med, float x3_med);
-void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5, float dato6, float dato7, float dato8);
+void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5, float dato6, float dato7, float dato8, float dato9, float dato10);
 
 void setup(void) {
   Serial.begin(115200);
@@ -55,6 +55,7 @@ float x1_est_print = 0;
 float x2_est_print = 0;
 float x3_est_print = 0;
 float x4_est_print = 0;
+float q_print = 0;
 
 void loop() {
 
@@ -86,17 +87,17 @@ void loop() {
   posicion -= 0.157; //ajusto el cero
 
   ref_x1 = analogRead(A0)*(2*0.52/1024.0) - 0.52; 
-  //ref_x1 = 0; 
+  ref_x1 = 5.0; 
   ref_x3 = 0;
 
   //Controladores y observador
   observador(u, posicion, angulo);
-  u = state_feedback(ref_x1, ref_x3, x1_est_print, x2_est_print, x3_est_print, x4_est_print);
+  u = state_feedback_int(ref_x1, ref_x3, x1_est_print, x2_est_print, x3_est_print, x4_est_print);
 
   mover_servo(u);
 
   //Datos
-  matlab_send(posicion, x1_est_print, 0/*Velocidad*/, x2_est_print, angulo, x3_est_print, gyro_x, x4_est_print);
+  matlab_send(posicion, x1_est_print, 0/*Velocidad*/, x2_est_print, angulo, x3_est_print, gyro_x, x4_est_print, ref_x1, q_print);
 
   unsigned long t2 = micros();
 
@@ -109,18 +110,21 @@ void loop() {
 
 float state_feedback_int(float ref_x1, float ref_x3, float x1_est, float x2_est, float x3_est, float x4_est){
   const float Ts = 0.02;
-  const float K[4] = {-8.5638 ,  -1.6764, -1.6533, -0.1083};
+  const float K[4] = {-8.5638, -1.6764, -1.6533, -0.1083};
   const float H = 7.7126;
  
-  float u = 0;
-  float e = 0;   
-  static float q = 0;
+  float u = 0.0;
+  float e = 0.0;   
+  static float q = 0.0;
   
   e = ref_x1 - x1_est; //rk - yk
-  q += q + Ts*e;
+  q = q + Ts*e;
 
   //Nota: modificar la constante de la referencia nos permite modificar los ceros?
   u = x1_est*K[0] + x2_est*K[1] + x3_est*K[2] + x4_est*K[3] + H*q + ref_x1;
+
+  //Variables de plot 
+  q_print = q;
 
   return u;
 }
@@ -188,7 +192,7 @@ void mover_servo(float grados) {
   myservo.writeMicroseconds(pwm);
 }
 
-void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5, float dato6, float dato7, float dato8) {
+void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5, float dato6, float dato7, float dato8, float dato9, float dato10) {
   Serial.write("abcd");
   byte *b = (byte *)&dato1;
   Serial.write(b, 4);
@@ -206,7 +210,13 @@ void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5
   Serial.write(b, 4);
   b = (byte *)&dato8;
   Serial.write(b, 4);
-  }
+  b = (byte *)&dato9;
+  Serial.write(b, 4);
+
+  b = (byte *)&dato10;
+  Serial.write(b, 4);
+
+}
 
 
 float estimar_angulo_gyro(float gyro, float angulo_prev) {
