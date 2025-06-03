@@ -86,12 +86,12 @@ void loop() {
   posicion = (sonar.ping()) * (0.343/2.0) * (1.0/1000.0); // microseg a m
   posicion -= 0.157; //ajusto el cero
 
-  ref_x1 = analogRead(A0)*(2*0.52/1024.0) - 0.52; 
-<<<<<<< HEAD
-  ref_x1 = 5.0; 
-=======
+  //ref_x1 = analogRead(A0)*(2*0.52/1024.0) - 0.52; 
+//<<<<<<< HEAD
+  //ref_x1 = 5.0; 
+//=======
   ref_x1 = 0; 
->>>>>>> 27b3a1206421f4b535c9c873207987c0c9a9c87a
+//>>>>>>> 27b3a1206421f4b535c9c873207987c0c9a9c87a
   ref_x3 = 0;
 
   //Controladores y observador
