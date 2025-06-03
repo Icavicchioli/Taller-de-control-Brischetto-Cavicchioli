@@ -58,7 +58,8 @@ float x4_est_print = 0;
 
 void loop() {
 
-  static float ref = 0;
+  static float ref_x1 = 0;
+  static float ref_x3 = 0;
   static float angulo = 0;
   static float angulo_gyro = 0;
   static float angulo_accel = 0;
@@ -84,10 +85,13 @@ void loop() {
   posicion = (sonar.ping() ) * (0.343/2.0) * (1.0/1000.0); // microseg a m
   posicion -= 0.157; //ajusto el cero
 
+  ref_x1 = analogRead(A0)*(2*0.52/1024.0) - 0.52; 
+  //ref_x1 = 0; 
+  ref_x3 = 0;
+
   //Controladores y observador
   observador(u, posicion, angulo);
-  
-  u = state_feedback_sin_feed(x1_est_print, x2_est_print, x3_est_print, x4_est_print);
+  u = state_feedback(ref_x1, ref_x3, x1_est_print, x2_est_print, x3_est_print, x4_est_print);
 
   mover_servo(u);
 
@@ -103,11 +107,12 @@ void loop() {
   delayMicroseconds(diffUS);
 }
 
-float state_feedback_sin_feed(float x1_est, float x2_est, float x3_est, float x4_est){
+float state_feedback(float ref_x1, float ref_x3, float x1_est, float x2_est, float x3_est, float x4_est){
   float u = 0;
   float K[4] = {-3.9340, -0.9499, -0.8737, -0.0781};
+  float F[2] = {3.9340, 0};
 
-  u = x1_est*K[0] + x2_est*K[1] + x3_est*K[2] + x4_est*K[3];
+  u = x1_est*K[0] + x2_est*K[1] + x3_est*K[2] + x4_est*K[3] + ref_x1*F[0] + ref_x3*F[1];
 
   return u;
 }
