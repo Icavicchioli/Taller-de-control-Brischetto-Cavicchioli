@@ -36,7 +36,7 @@ Bd_aug = [Bd; 0];
 polos_nuevos = [-4+2i ; -4-2i ; -12.2957+1.80971i; -12.2957-1.80971i; -2];
 polos_discretos = exp(Ts*polos_nuevos);
 
-K_aug = place(Ad_aug, -Bd_aug, polos_discretos)
+K_aug = place(Ad_aug, -Bd_aug, polos_discretos);
 
 
    
