@@ -86,6 +86,7 @@ void loop() {
   posicion = (sonar.ping()) * (0.343/2.0) * (1.0/1000.0); // microseg a m
   posicion -= 0.157; //ajusto el cero
 
+
   ref_x1 = analogRead(A0)*(2*0.52/1024.0) - 0.52; 
   ref_x1 = 0.05; 
   ref_x3 = 0;
@@ -114,6 +115,10 @@ float state_feedback_int(float ref_x1, float ref_x3, float x1_est, float x2_est,
   //const float H = 18.7183;
   const float K[4] = {-7.0207 ,  -1.4373 ,  -1.3023 ,-0.0885 };
   const float H = 6.9718;
+  
+  //const float K[4] = {-8.5638, -1.6764, -1.6533, -0.1083};
+  //const float H = 7.7126;
+
 
   float u = 0.0;
   float e = 0.0;   
