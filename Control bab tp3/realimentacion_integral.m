@@ -33,11 +33,15 @@ Ad_aug = [Ad , zeros([4,1]);
 Bd_aug = [Bd; 0];
 
 %Hago el pole placement para hallar K_aug (el ultimo es k_integral)
-polos_nuevos = [-8+2i ; -8-2i ; -20.2957+1.80971i; -20.2957-1.80971i; -5];
+polos_nuevos = [-2-1.5i; -2+1.5i ; -8; -11; -10];
 polos_discretos = exp(Ts*polos_nuevos);
 
 K_aug = place(Ad_aug, -Bd_aug, polos_discretos);
 
 
-   
+P = zpk([], polos_nuevos, 1);
+
+figure();
+step(P);
+
 

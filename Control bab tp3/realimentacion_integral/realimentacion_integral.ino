@@ -87,11 +87,7 @@ void loop() {
   posicion -= 0.157; //ajusto el cero
 
   ref_x1 = analogRead(A0)*(2*0.52/1024.0) - 0.52; 
-<<<<<<< HEAD
-  ref_x1 = 5.0; 
-=======
-  ref_x1 = 0; 
->>>>>>> 27b3a1206421f4b535c9c873207987c0c9a9c87a
+  ref_x1 = 0.05; 
   ref_x3 = 0;
 
   //Controladores y observador
@@ -114,14 +110,11 @@ void loop() {
 
 float state_feedback_int(float ref_x1, float ref_x3, float x1_est, float x2_est, float x3_est, float x4_est){
   const float Ts = 0.02;
-<<<<<<< HEAD
-  const float K[4] = {-8.5638, -1.6764, -1.6533, -0.1083};
-  const float H = 7.7126;
-=======
-  const float K[4] = { -79.5512  ,-11.8213  ,-11.1331   ,-0.4387   };
-  const float H = 135.9596;
->>>>>>> 27b3a1206421f4b535c9c873207987c0c9a9c87a
- 
+  //const float K[4] = {-15.1705, -2.7130, -2.7658, -0.1514};
+  //const float H = 18.7183;
+  const float K[4] = {-7.0207 ,  -1.4373 ,  -1.3023 ,-0.0885 };
+  const float H = 6.9718;
+
   float u = 0.0;
   float e = 0.0;   
   static float q = 0.0;
@@ -160,10 +153,10 @@ float observador(float u, float x1_med, float x3_med){
 
   const float Bd[4] = {0, 0, 0, 1.2978}; 
 
-  const float Ld[4][2] = {{1.1349, 0},
-                         {13.9806 , 0.1756},
-                         {0, 0.7963},
-                         {0, -1.3004}};
+  const float Ld[4][2] = {{0.8744, -0.0392},
+                         {7.9568 , -0.6022},
+                         {-0.0008, 0.5116},
+                         {-0.0020, -2.9808}};
 
   static float x1_est = 0, x2_est = 0, x3_est = 0, x4_est = 0;
 
@@ -205,6 +198,12 @@ void mover_servo(float grados) {
   pwm = ((g) * (2000.0) / (PI)) + 1500.0;
 
   //Checkeo de vuelta que no sobrepase +-45grados (parece que es algo de la alimentacion)
+  
+
+  if( isnan(pwm) || isinf(pwm)){
+    pwm = 1500; 
+  }
+
   if(pwm > 1900.0){ 
     pwm = 1900.0;
   }
@@ -236,12 +235,10 @@ void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5
   Serial.write(b, 4);
   b = (byte *)&dato9;
   Serial.write(b, 4);
-
   b = (byte *)&dato10;
   Serial.write(b, 4);
 
 }
-
 
 float estimar_angulo_gyro(float gyro, float angulo_prev) {
   return (angulo_prev + gyro * DELTA);

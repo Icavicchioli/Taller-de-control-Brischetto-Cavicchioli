@@ -86,7 +86,7 @@ void loop() {
   posicion -= 0.157; //ajusto el cero
 
   ref_x1 = analogRead(A0)*(2*0.52/1024.0) - 0.52; 
-  //ref_x1 = 0; 
+  ref_x1 = 0; 
   ref_x3 = 0;
 
   //Controladores y observador
@@ -127,10 +127,10 @@ float observador(float u, float x1_med, float x3_med){
 
   const float Bd[4] = {0, 0, 0, 1.2978}; 
 
-  const float Ld[4][2] = {{1.1349, 0},
-                         {13.9806 , 0.1756},
-                         {0, 0.7963},
-                         {0, -1.3004}};
+  const float Ld[4][2] = {{0.8744, -0.0392},
+                         {7.9568 , -0.6022},
+                         {-0.0008, 0.5116},
+                         {-0.0020, -2.9808}};
 
   static float x1_est = 0, x2_est = 0, x3_est = 0, x4_est = 0;
 
