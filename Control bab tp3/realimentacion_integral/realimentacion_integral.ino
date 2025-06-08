@@ -15,6 +15,9 @@
 #define ECHO_PIN 6
 #define TRIGGER_PIN 7
 
+#define BTN2 PIN_A1
+#define BTN1 4
+
 NewPing sonar(TRIGGER_PIN,ECHO_PIN, 100);
 Servo myservo;
 Adafruit_MPU6050 mpu;
@@ -46,6 +49,10 @@ void setup(void) {
 
   //Potenciometro
   pinMode(A0, INPUT);
+  
+  //boton de cambio rapido de referencia
+  pinMode(BTN2, INPUT);
+  pinMode(BTN1, INPUT);
 
   delay(1000);
 }
@@ -86,9 +93,13 @@ void loop() {
   posicion = (sonar.ping()) * (0.343/2.0) * (1.0/1000.0); // microseg a m
   posicion -= 0.157; //ajusto el cero
 
+  //Referencia
+  //ref_x1 = analogRead(A0)*(2*0.52/1024.0) - 0.52; 
+  if(!digitalRead(BTN2)) ref_x1 = 0.05; 
 
-  ref_x1 = analogRead(A0)*(2*0.52/1024.0) - 0.52; 
-  ref_x1 = 0.05; 
+  if(!digitalRead(BTN1)) ref_x1 = 0.0; 
+  
+  
   ref_x3 = 0;
 
   //Controladores y observador
@@ -113,12 +124,11 @@ float state_feedback_int(float ref_x1, float ref_x3, float x1_est, float x2_est,
   const float Ts = 0.02;
   //const float K[4] = {-15.1705, -2.7130, -2.7658, -0.1514};
   //const float H = 18.7183;
+  //const float K[4] = {-8.5638, -1.6764, -1.6533, -0.1083};
+  //const float H = 7.7126;
   const float K[4] = {-7.0207 ,  -1.4373 ,  -1.3023 ,-0.0885 };
   const float H = 6.9718;
   
-  //const float K[4] = {-8.5638, -1.6764, -1.6533, -0.1083};
-  //const float H = 7.7126;
-
 
   float u = 0.0;
   float e = 0.0;   
@@ -129,7 +139,7 @@ float state_feedback_int(float ref_x1, float ref_x3, float x1_est, float x2_est,
   q = q + Ts*e;
 
   //Nota: modificar la constante de la referencia nos permite modificar los ceros?
-  u = x1_est*K[0] + x2_est*K[1] + x3_est*K[2] + x4_est*K[3] + H*q + ref_x1;
+  u = x1_est*K[0] + x2_est*K[1] + x3_est*K[2] + x4_est*K[3] + H*q /*+ ref_x1*/;
 
   //Variables de plot 
   q_print = q;
