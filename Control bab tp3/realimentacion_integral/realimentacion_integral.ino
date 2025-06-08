@@ -126,8 +126,21 @@ float state_feedback_int(float ref_x1, float ref_x3, float x1_est, float x2_est,
   //const float H = 18.7183;
   //const float K[4] = {-8.5638, -1.6764, -1.6533, -0.1083};
   //const float H = 7.7126;
-  const float K[4] = {-7.0207 ,  -1.4373 ,  -1.3023 ,-0.0885 };
-  const float H = 6.9718;
+  
+  //const float K[4] = {-7.0207 ,  -1.4373 ,  -1.3023 ,-0.0885 }; //-2-1.5i; -2+1.5i ; -8; -11; -10
+  //const float H = 6.9718;
+
+  //const float K[4] = {-10.1792 ,  -2.0043  , -1.9859 ,  -0.1172 }; //-3-0.1i; -3+0.1i ; -8; -11; -10
+  //const float H = 9.8540;
+    
+  //const float K[4] = {-16.3140  , -2.9647  , -3.0269 ,  -0.1589  }; //[-4+0.1j; -4-0.1j; -9; -11; -10]; este anda bastante bien (capaz un poco oscilatorio) (el que mejor anda)
+  //const float H = 19.1261;  
+
+  //const float K[4] = {-10.7544,   -2.1502,   -2.2368 ,  -0.1299 }; // [-4; -2; -9; -11; -10]; //suele andar bien (a veces mucho overshoot)
+  //const float H =   9.7482;  
+
+  const float K[4] = {-13.6706 ,  -2.5726 ,  -2.6412 ,  -0.1446 }; // [-3.5+0.1j; -3.5-0.1j; -9; -11; -10] //A veces tiene overshoot 
+  const float H =   14.7915;
   
 
   float u = 0.0;
