@@ -37,7 +37,10 @@ rank(obsv(Ad,Cd))
  
 Ld = place(Ad',Cd',polos_discretos)'
 
-%% Prueba que funcione el observador - gracias chatgpt
+Ld = [1.1349 0;13.9806 0.1756;0 0.7963;0 -1.3004];% los usados en el arduino
+
+%% 
+% Prueba que funcione el observador - gracias chatgpt
 
 N = 100;
 x_real = zeros(4,N);
@@ -54,7 +57,8 @@ end
 plot(x_real'); hold on; plot(x_est','--');
 legend('x1','x2','x3','x4','x1 est','x2 est','x3 est','x4 est');
 
-%%
+%% 
+%para probar algun filtrado pero no ayuda tanto como para justificar su uso
 s=tf('s');
 filtro = (s+20*pi*2);
 filtrod=c2d(filtro,0.02,'tustin')
