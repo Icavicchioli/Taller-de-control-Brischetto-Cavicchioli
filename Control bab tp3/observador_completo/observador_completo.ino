@@ -15,6 +15,19 @@
 #define ECHO_PIN 6
 #define TRIGGER_PIN 7
 
+//Definiciones motor
+
+#define MOTOR_MAX 2500.0
+#define MOTOR_MIN 500.0
+#define MOTOR_CERO 1500.0
+
+#define MOTOR_MAX 2250.0
+#define MOTOR_MIN 800.0
+#define MOTOR_CERO 1500.0
+
+//Definiciones para compilacion
+#define PRUEBA 0
+
 NewPing sonar(TRIGGER_PIN,ECHO_PIN, 100);
 Servo myservo;
 Adafruit_MPU6050 mpu;
@@ -23,7 +36,7 @@ Adafruit_MPU6050 mpu;
 void mover_servo(float grados);
 float estimar_angulo_accel(float accel_z, float accel_y);
 float observador(float u, float x1_med, float x3_med);
-void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5, float dato6, float dato7, float dato8);
+void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5, float dato6, float dato7, float dato8, float dato9);
 
 void setup(void) {
   Serial.begin(115200);
@@ -41,7 +54,7 @@ void setup(void) {
   mpu.setFilterBandwidth(MPU6050_BAND_44_HZ);
 
   //Init servo
-  myservo.attach(5, 500, 2500);  //500 -> 0, 2500->180
+  myservo.attach(5, MOTOR_MIN, MOTOR_MAX);  //500 -> 0, 2500->180
   mover_servo(0);
 
   //Potenciometro
@@ -64,6 +77,7 @@ void loop() {
   static float angulo_accel = 0;
   static float u = 0;
   static float posicion = 0;
+  static float cnt_ciclo = 0;
 
   unsigned long t1 = micros();
 
@@ -85,15 +99,41 @@ void loop() {
   posicion -= 0.157; //ajusto el cero
 
   //Referencia
-  ref = analogRead(A0)*(2*0.52/1024.0) - 0.52; 
-  u = ref;
-  
-  observador(u, posicion, angulo);
+  #if PRUEBA == 1
+    ref = analogRead(A0)*(2*0.52/1024.0) - 0.52; 
+    u = 0; 
+  #else 
+    cnt_ciclo++;
 
+    if(cnt_ciclo == 1){
+      u = 0.26; // 15 grados  
+    }
+    if(cnt_ciclo == 20){
+      u = -0.26; // 15 grados  
+    }
+    if(cnt_ciclo == 40){ 
+      u = 0; // 10 grados
+    }
+    if(cnt_ciclo == 100){ 
+      u = -0.35; // 15 grados
+    }
+    if(cnt_ciclo == 120){ 
+      u = 0.30; // 15 grados  
+    }
+    if(cnt_ciclo == 140){
+      u = 0;
+    }
+    if(cnt_ciclo == 200){ 
+      cnt_ciclo = 200;
+    }      
+    
+  #endif
+
+  observador(u, posicion, angulo);
   mover_servo(u);
 
   //Datos
-  matlab_send(posicion, x1_est_print, 0/*Velocidad*/, x2_est_print, angulo, x3_est_print, gyro_x, x4_est_print);
+  matlab_send(posicion, x1_est_print, 0/*Velocidad*/, x2_est_print, angulo, x3_est_print, gyro_x, x4_est_print, u);
 
   unsigned long t2 = micros();
 
@@ -114,11 +154,11 @@ void mover_servo(float grados) {
   if(g < -0.7) g = -0.7;
 
   float pwm = 0;
-  pwm = (grados * 2000.0 / PI) + 1500;
+  pwm = (grados * (MOTOR_MAX - MOTOR_MIN) / PI) + MOTOR_CERO;
   myservo.writeMicroseconds(pwm);
 }
 
-void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5, float dato6, float dato7, float dato8) {
+void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5, float dato6, float dato7, float dato8, float dato9) {
   Serial.write("abcd");
   byte *b = (byte *)&dato1;
   Serial.write(b, 4);
@@ -136,7 +176,12 @@ void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5
   Serial.write(b, 4);
   b = (byte *)&dato8;
   Serial.write(b, 4);
-  }
+  b = (byte *)&dato9;
+  Serial.write(b, 4);
+  
+
+}
+  
 
 
 float estimar_angulo_gyro(float gyro, float angulo_prev) {

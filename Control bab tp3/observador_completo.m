@@ -35,3 +35,56 @@ rank(obsv(Ad,Cd))
  
 Ld = place(Ad',Cd',polos_discretos)'
 eig(Ad - Ld*Cd);
+
+%% Graficos hechos con obs -[4 4 3.5 3.5] *12.4289
+clc ;close all;
+muestras = length(out.posicion);
+t = 0:Ts:(muestras-1)*Ts;
+
+figure();
+plot(t, out.posicion)
+xlabel("tiempo[s]")
+ylabel("distancia[m]")
+legend("Medicion", "Estimacion")
+xlim([0, 5])
+grid on;
+saveas(gcf,'img_obs/posicion_obs.png')
+
+%velocidad
+t1 = 0:Ts:(length(t)-1-1)*Ts;
+
+velocidad_estimada = out.velocidad(:, 2);
+velocidad_medida = diff(out.posicion(:, 1))./diff(t1);
+velocidad_medida = velocidad_medida(:, 1);
+
+figure();
+plot(t1, velocidad_medida)
+hold on;
+plot(t, velocidad_estimada)
+xlabel("tiempo[s]")
+ylabel("velocidad[m/s]")
+legend("Medicion", "Estimacion")
+xlim([0, 5])
+grid on;
+saveas(gcf,'img_obs/velocidad_obs.png')
+
+figure();
+plot(t, out.angulo)
+xlabel("tiempo[s]")
+ylabel("angulo[rad]")
+legend("Medicion", "Estimacion")
+xlim([0, 5])
+grid on;
+saveas(gcf,'img_obs/angulo_obs.png')
+
+figure();
+plot(t, out.velocidad_angular)
+xlabel("tiempo[s]")
+ylabel("velocidad angular[rad/s]")
+legend("Medicion", "Estimacion")
+xlim([0, 5])
+grid on;
+saveas(gcf,'img_obs/velocidad_angular_obs.png')
+
+
+
