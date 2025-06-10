@@ -4,30 +4,25 @@ ancho = 7.87;  % ~20 cm
 alto = 6.3;    % ~16 cm
 
 % Variables de entrada (similares a las tuyas)
-angulo = out.angulo;       % Nx2
-referencia = out.u;   % Nx1
-posicion = out.posicion;     % Nx2
-velocidad = out.velocidad;    % Nx2
-vel_angular = out.velocidad_angular; % Nx2
-muestras = length(out.posicion);
-tiempo = 0:0.02:(muestras-1)*0.02;
+angulo1 = [angulo_arduino(1:655) angulo(1:655)];       % Nx2
+%referencia = out.ref(:,1);   % Nx1
+%referencia = zeros(1001);
+posicion1 = [posicion_arduino(1:655) posicion(1:655)];     % Nx2
+velocidad1 = [ velocidad_arduino(1:655) velocidad(1:655)];    % Nx2
+vel_angular1 = [velocidadAng_arduino(1:655) velocidad_ang(1:655)]; % Nx2
+tiempo1=tiempo_ard;
+%%
 
-t1 = 0:Ts:(length(tiempo)-1-1)*0.02;
-
-velocidad_medida = diff(out.posicion(:, 1))./diff(t1);
-velocidad_medida = velocidad_medida(:, 1);
-
-% --- ﾃ］gulos y referencia ---
+% --- ﾃ?ngulos y referencia ---
 fig1 = figure;
 set(fig1, 'Units', 'inches', 'Position', [1,1, ancho, alto]);
 hold on;
-plot(tiempo, angulo(:,1), '-', 'LineWidth', 2);
-plot(tiempo, angulo(:,2), '-', 'LineWidth', 2);
-plot(tiempo, referencia, 'LineWidth', 2);
-title('ﾃ］gulo y referencia');
+plot(tiempo1, angulo1(:,1), '-', 'LineWidth', 2);
+plot(tiempo1, angulo1(:,2), '-', 'LineWidth', 2);
+title('ﾁngulo');
 xlabel('Tiempo [s]');
-ylabel('ﾃ］gulo [rad]');xlim([0 max(tiempo)]);
-legend({'ﾃ］gulo real', 'ﾃ］gulo estimado', 'Referencia'},'Location','northeast');
+ylabel('ﾁngulo [rad]');xlim([0 max(tiempo)]);
+legend({'ﾁngulo real', 'ﾁngulo estimado', 'Referencia'},'Location','northeast');
 grid on;
 set(fig1, 'PaperUnits', 'inches', 'PaperPosition', [0 0 ancho alto], 'PaperSize', [ancho alto]);
 print(fig1, 'angulo_referencia_real', '-dpdf', '-r300');
@@ -36,12 +31,12 @@ print(fig1, 'angulo_referencia_real', '-dpdf', '-r300');
 fig2 = figure;
 set(fig2, 'Units', 'inches', 'Position', [1,1, ancho, alto]);
 hold on;
-plot(tiempo, posicion(:,1), '-', 'LineWidth', 2);
-plot(tiempo, posicion(:,2), '-', 'LineWidth', 2);
-title('Posiciﾃｳn');
+plot(tiempo1, posicion1(:,1), '-', 'LineWidth', 2);
+plot(tiempo1, posicion1(:,2), '-', 'LineWidth', 2);
+title('Posici - Referencia cero');
 xlabel('Tiempo [s]');
-ylabel('Posiciﾃｳn [m]');xlim([0 max(tiempo)]);
-legend({'Posiciﾃｳn real', 'Posiciﾃｳn estimada'},'Location','northeast');
+ylabel('Posici [m]');xlim([0 max(tiempo)]);
+legend({'Posici real', 'Posici estimada'},'Location','northeast');
 grid on;
 set(fig2, 'PaperUnits', 'inches', 'PaperPosition', [0 0 ancho alto], 'PaperSize', [ancho alto]);
 print(fig2, 'posiciones_real', '-dpdf', '-r300');
@@ -50,8 +45,8 @@ print(fig2, 'posiciones_real', '-dpdf', '-r300');
 fig3 = figure;
 set(fig3, 'Units', 'inches', 'Position', [1,1, ancho, alto]);
 hold on;
-plot(t1, velocidad_medida, '-', 'LineWidth', 2);
-plot(tiempo, velocidad(:,2), '-', 'LineWidth', 2);
+plot(tiempo1, velocidad1(:,1), '-', 'LineWidth', 2);
+plot(tiempo1, velocidad1(:,2), '-', 'LineWidth', 2);
 title('Velocidad');
 xlabel('Tiempo [s]');
 ylabel('Velocidad [m/s]');xlim([0 max(tiempo)]);
@@ -64,8 +59,8 @@ print(fig3, 'velocidades_real', '-dpdf', '-r300');
 fig4 = figure;
 set(fig4, 'Units', 'inches', 'Position', [1,1, ancho, alto]);
 hold on;
-plot(tiempo, vel_angular(:,1), '-', 'LineWidth', 2);
-plot(tiempo, vel_angular(:,2), '-', 'LineWidth', 2);
+plot(tiempo1, vel_angular1(:,1), '-', 'LineWidth', 2);
+plot(tiempo1, vel_angular1(:,2), '-', 'LineWidth', 2);
 title('Velocidad angular');xlim([0 max(tiempo)]);
 xlabel('Tiempo [s]');
 ylabel('Velocidad angular [rad/s]');
