@@ -23,17 +23,14 @@ Bd = B*Ts;
 rank(ctrb(Ad,Bd));
 rank(obsv(Ad,Cd));
 
-
 %% Polos del controlador por state feedback (nota: mas lentos que el obs)
-
 polos_nuevos = [-4+2i ; -4-2i ; -12.2957+1.80971i; -12.2957-1.80971i];
 polos_discretos = exp(Ts*polos_nuevos);
 
 %% Calculo la ganancia de realimentacion
 K = place(Ad, -Bd, polos_discretos);
 
-
 %% Termino de feedthrough (nota: Consultar la segunda inversion)
-
 F = 1/(Cd * inv(eye(4) - (Ad + Bd*K)) * Bd);
+
 

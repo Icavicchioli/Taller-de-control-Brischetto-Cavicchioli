@@ -15,6 +15,15 @@
 #define ECHO_PIN 6
 #define TRIGGER_PIN 7
 
+//Definiciones motor
+#define MOTOR_MAX 2500.0
+#define MOTOR_MIN 500.0
+#define MOTOR_CERO 1500.0
+
+#define MOTOR_MAX 2250.0
+#define MOTOR_MIN 800.0
+#define MOTOR_CERO 1500.0
+
 #define BTN2 PIN_A1
 #define BTN1 4
 
@@ -44,7 +53,7 @@ void setup(void) {
   mpu.setFilterBandwidth(MPU6050_BAND_44_HZ);
 
   //Init servo
-  myservo.attach(5, 500, 2500);  //500 -> 0, 2500->180
+  myservo.attach(5, MOTOR_MIN, MOTOR_MAX); //500 -> 0, 2500->180
   mover_servo(0);
 
   //Potenciometro
@@ -139,10 +148,12 @@ float state_feedback_int(float ref_x1, float ref_x3, float x1_est, float x2_est,
   //const float K[4] = {-10.7544,   -2.1502,   -2.2368 ,  -0.1299 }; // [-4; -2; -9; -11; -10]; //suele andar bien (a veces mucho overshoot)
   //const float H =   9.7482;  
 
-  const float K[4] = {-13.6706 ,  -2.5726 ,  -2.6412 ,  -0.1446 }; // [-3.5+0.1j; -3.5-0.1j; -9; -11; -10] //A veces tiene overshoot 
-  const float H =   14.7915;
-  
+  //const float K[4] = {-13.6706 ,  -2.5726 ,  -2.6412 ,  -0.1446 }; // [-3.5+0.1j; -3.5-0.1j; -9; -11; -10] //A veces tiene overshoot 
+  //const float H =   14.7915;
 
+  const float K[4] = {-8.8458   -1.9586   -2.2900   -0.1396};
+  const float H = 6.7236;
+      
   float u = 0.0;
   float e = 0.0;   
   static float q = 0.0;
@@ -223,11 +234,10 @@ void mover_servo(float grados) {
   }
 
   volatile float pwm = 0;
-  pwm = ((g) * (2000.0) / (PI)) + 1500.0;
+  pwm = (grados * (MOTOR_MAX - MOTOR_MIN) / PI) + MOTOR_CERO;
 
   //Checkeo de vuelta que no sobrepase +-45grados (parece que es algo de la alimentacion)
   
-
   if( isnan(pwm) || isinf(pwm)){
     pwm = 1500; 
   }

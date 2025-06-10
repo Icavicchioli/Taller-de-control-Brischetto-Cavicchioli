@@ -16,7 +16,6 @@
 #define TRIGGER_PIN 7
 
 //Definiciones motor
-
 #define MOTOR_MAX 2500.0
 #define MOTOR_MIN 500.0
 #define MOTOR_CERO 1500.0
@@ -182,8 +181,6 @@ void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5
 
 }
   
-
-
 float estimar_angulo_gyro(float gyro, float angulo_prev) {
   return (angulo_prev + gyro * DELTA);
 }

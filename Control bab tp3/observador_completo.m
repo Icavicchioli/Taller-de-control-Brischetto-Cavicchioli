@@ -39,7 +39,7 @@ rank(obsv(Ad,Cd))
 %%
 % ahora que tenemos los polos buscamos el L discreto
  
-Ld = place(Ad',Cd',polos_discretos)'
+Ld = place(Ad',Cd',polos_discretos)';
 eig(Ad - Ld*Cd);
 
 %% Graficos hechos con obs -[4 4 3.5 3.5] *12.4289
