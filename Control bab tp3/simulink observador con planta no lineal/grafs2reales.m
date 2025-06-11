@@ -2,7 +2,7 @@
 % Par獺metros de tama簽o en pulgadas
 ancho = 7.87;  % ~20 cm
 alto = 6.3;    % ~16 cm
-
+limit_tiempo = 12.5;
 % Variables de entrada (similares a las tuyas)
 angulo1 = [angulo_arduino(1:655) angulo(1:655)];       % Nx2
 %referencia = out.ref(:,1);   % Nx1
@@ -21,8 +21,9 @@ plot(tiempo1, angulo1(:,1), '-', 'LineWidth', 2);
 plot(tiempo1, angulo1(:,2), '-', 'LineWidth', 2);
 title('聲gulo');
 xlabel('Tiempo [s]');
-ylabel('聲gulo [rad]');xlim([0 max(tiempo)]);
-legend({'聲gulo real', '聲gulo estimado', 'Referencia'},'Location','northeast');
+ylabel('聲gulo [rad]');
+xlim([0 limit_tiempo]);
+legend({'聲gulo real', '聲gulo estimado'},'Location','northeast');
 grid on;
 set(fig1, 'PaperUnits', 'inches', 'PaperPosition', [0 0 ancho alto], 'PaperSize', [ancho alto]);
 print(fig1, 'angulo_referencia_real', '-dpdf', '-r300');
@@ -35,7 +36,8 @@ plot(tiempo1, posicion1(:,1), '-', 'LineWidth', 2);
 plot(tiempo1, posicion1(:,2), '-', 'LineWidth', 2);
 title('Posici鏮 - Referencia cero');
 xlabel('Tiempo [s]');
-ylabel('Posici鏮 [m]');xlim([0 max(tiempo)]);
+ylabel('Posici鏮 [m]');
+xlim([0 limit_tiempo]);
 legend({'Posici鏮 real', 'Posici鏮 estimada'},'Location','northeast');
 grid on;
 set(fig2, 'PaperUnits', 'inches', 'PaperPosition', [0 0 ancho alto], 'PaperSize', [ancho alto]);
@@ -49,7 +51,8 @@ plot(tiempo1, velocidad1(:,1), '-', 'LineWidth', 2);
 plot(tiempo1, velocidad1(:,2), '-', 'LineWidth', 2);
 title('Velocidad');
 xlabel('Tiempo [s]');
-ylabel('Velocidad [m/s]');xlim([0 max(tiempo)]);
+ylabel('Velocidad [m/s]');
+xlim([0 limit_tiempo]);
 legend({'Velocidad real', 'Velocidad estimada'},'Location','northeast');
 grid on;
 set(fig3, 'PaperUnits', 'inches', 'PaperPosition', [0 0 ancho alto], 'PaperSize', [ancho alto]);
@@ -61,7 +64,8 @@ set(fig4, 'Units', 'inches', 'Position', [1,1, ancho, alto]);
 hold on;
 plot(tiempo1, vel_angular1(:,1), '-', 'LineWidth', 2);
 plot(tiempo1, vel_angular1(:,2), '-', 'LineWidth', 2);
-title('Velocidad angular');xlim([0 max(tiempo)]);
+title('Velocidad angular');
+xlim([0 limit_tiempo]);
 xlabel('Tiempo [s]');
 ylabel('Velocidad angular [rad/s]');
 legend({'Vel. angular real', 'Vel. angular estimada'},'Location','southeast');
