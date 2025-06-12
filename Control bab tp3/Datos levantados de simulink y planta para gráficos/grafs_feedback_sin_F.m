@@ -44,7 +44,7 @@ xlim([0 limit_tiempo]);
 grid on;
 
 set(fig_real, 'PaperUnits', 'inches', 'PaperPosition', [0 0 ancho alto], 'PaperSize', [ancho alto]);
-print(fig_real, 'senales_arduino', '-dpdf', '-r300');
+print(fig_real, 'senales_arduino_sin_feed', '-dpdf', '-r300');
 
 % --- Figura 2: Señales estimadas ---
 fig_estimado = figure;
@@ -83,4 +83,4 @@ xlim([0 limit_tiempo]);
 grid on;
 
 set(fig_estimado, 'PaperUnits', 'inches', 'PaperPosition', [0 0 ancho alto], 'PaperSize', [ancho alto]);
-print(fig_estimado, 'senales_estimadas', '-dpdf', '-r300');
+print(fig_estimado, 'senales_estimadas_sin_feed', '-dpdf', '-r300');
