@@ -81,7 +81,7 @@ void loop() {
   static float angulo_gyro = 0;
   static float angulo_accel = 0;
   static float u = 0;
-  static float posicion = 0;
+  float posicion = 0;
 
   unsigned long t1 = micros();
 
@@ -100,13 +100,24 @@ void loop() {
 
   //Medicion de posicion 
   posicion = (sonar.ping()) * (0.343/2.0) * (1.0/1000.0); // microseg a m
+
+  #define FILTRO 1
+
+  #if FILTRO == 1
+    delayMicroseconds(3000);
+    posicion += (sonar.ping()) * (0.343/2.0) * (1.0/1000.0); // microseg a m
+    delayMicroseconds(3000);
+    posicion += (sonar.ping()) * (0.343/2.0) * (1.0/1000.0); // microseg a m
+    posicion = posicion/3;
+  #endif
+
   posicion -= 0.157; //ajusto el cero
 
   //Referencia
   //ref_x1 = analogRead(A0)*(2*0.52/1024.0) - 0.52; 
   if(!digitalRead(BTN2)) ref_x1 = 0.05; 
 
-  if(!digitalRead(BTN1)) ref_x1 = 0.0; 
+  if(!digitalRead(BTN1)) ref_x1 = -0.05; 
   
   
   ref_x3 = 0;
@@ -151,9 +162,39 @@ float state_feedback_int(float ref_x1, float ref_x3, float x1_est, float x2_est,
   //const float K[4] = {-13.6706 ,  -2.5726 ,  -2.6412 ,  -0.1446 }; // [-3.5+0.1j; -3.5-0.1j; -9; -11; -10] //A veces tiene overshoot 
   //const float H =   14.7915;
 
-  const float K[4] = {-8.8458   -1.9586   -2.2900   -0.1396};
-  const float H = 6.7236;
-      
+  //const float K[4] = {-8.8458 ,  -1.9586,   -2.2900,   -0.1396}; //[-2+0.1j; -2-0.1j; -11; -11+2j; -11-2j] //mucho overshoot
+  //const float H = 6.7236;
+
+  //const float K[4] = {-8.6628  , -1.9161 ,  -2.2455 ,  -0.1388}; //[-2+0.1j; -2-0.1j; -11; -11+1j; -11-1j] //mucho overshoot
+  //const float H = 6.5628;
+
+  //const float K[4] = { -7.0827 ,  -1.6822 ,  -2.0273 ,  -0.1313}; //[-2.5; -1; -11; -11+1j; -11-1j]; //A veces anda bien, normalmente se va de overshoot
+  //const float H = 4.1120;
+
+  //const float K[4] = {-27.8709 ,  -4.6830  , -4.7623  , -0.2251}; //[-5-0.1j; -5+0.1j; -11; -11+1j; -11-1j]; //Sigue perfecta la referencia pero oscila un monton 
+  //const float H = 38.5752;
+
+  //const float K[4] = {-22.4845  , -3.8519 ,  -3.8676 ,  -0.1892}; //[-5-0.1j; -5+0.1j; -10; -10.1; -10.05]; //Sigue bien la referencia pero oscila un monton 
+  //const float H = 29.9917;
+   
+  const float K[4] = {-19.4825 ,  -3.4280  , -3.4748  , -0.1752 }; //[-4.5-0.1j; -4.5+0.1j; -10; -10.1; -10.05] //Este muy muy bien, oscila menos y sigue bien
+  const float H = 24.5358;
+   
+  //const float K[4] = {-17.7544  , -3.1799  , -3.2402  , -0.1668 }; //[-4.2-0.1j; -4.2+0.1j; -10; -10.1; -10.05]; //Sigue bien, pero oscila y tiene un poco de error
+  //const float H = 21.5018;
+
+  //const float K[4] = {-14.0580  , -2.5603  , -2.4541  , -0.1305 }; //[-4.2-0.1j; -4.2+0.1j; -9.2; -9.1; -9] //Este ya no sigue muy bien y se suele pasar, oscila menos
+  //const float H = 16.4074;
+
+  //const float K[4] = {-15.4487, -2.7680, -2.6687, -0.1390}; //[-4.5-0.1j; -4.5+0.1j; -9.2; -9.1; -9] //Este ya no sigue muy bien y se suele pasar, oscila menos
+  //const float H = 18.7227;
+
+  //const float K[4] = {-15.7966 ,  -2.8056  , -2.6886  , -0.1392}; //[-4.5-1j; -4.5+1j; -9.2; -9.1; -9] // bastante overshoot y un poco lento  
+  //const float H = 19.6369;
+
+  //const float K[4] = {-12.8955  , -2.2856  , -1.9441   ,-0.1012}; //[-4.5-2j; -4.5+2j; -8; -8.1; -8.2]  //Un poco de overshoot y no sigue bien
+  //const float H = 16.2688;
+
   float u = 0.0;
   float e = 0.0;   
   static float q = 0.0;

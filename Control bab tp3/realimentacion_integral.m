@@ -1,5 +1,6 @@
 clear all
 clc
+close all
 
 A = [
 [0 1 0 0];
@@ -33,10 +34,10 @@ Ad_aug = [Ad , zeros([4,1]);
 Bd_aug = [Bd; 0];
 
 %Hago el pole placement para hallar K_aug (el ultimo es k_integral)
-polos_nuevos = [-2+0.1j; -2-0.1j; -11; -11+2j; -11-2j];
+polos_nuevos = [-4.5-2j; -4.5+2j; -8; -8.1; -8.2];
 polos_discretos = exp(Ts*polos_nuevos);
 
-K_aug = place(Ad_aug, -Bd_aug, polos_discretos);
+K_aug = place(Ad_aug, -Bd_aug, polos_discretos)
 
 %Calculo la ganancia N 
 
