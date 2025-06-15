@@ -39,6 +39,8 @@ void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5
 float state_feedback_int(float ref_x1, float ref_x3, float x1_est, float x2_est, float x3_est, float x4_est);
 
 
+float secuencia_sigmoidal[20] = { 0.018, 0.047, 0.095, 0.154, 0.223, 0.289, 0.378, 0.438, 0.5, 0.562, 0.622, 0.679, 0.731, 0.802, 0.858, 0.905, 0.94, 0.971, 0.991, 0.998 };
+
 void setup(void) {
   Serial.begin(115200);
 
@@ -84,6 +86,8 @@ void loop() {
   static float angulo_accel = 0;
   static float u = 0;
   float posicion = 0;
+  static unsigned int index = 0;
+  static float ref_sigmoidal;
 
   unsigned long t1 = micros();
 
@@ -108,60 +112,65 @@ void loop() {
 
   //Referencia
   //ref_x1 = analogRead(A0)*(2*0.52/1024.0) - 0.52;
-  
-  // Variables estáticas para la referencia sigmoidal
-  static unsigned long t_ref_start = 0;
-  static bool cambiando_ref = false;
-  static float A = 0.08;  // amplitud del escalón deseado
-  const float k = 0.01;   // pendiente de la sigmoide (ajustable)
-
-  // Inicio de transición
   if (!digitalRead(BTN2)) {
-    t_ref_start = millis();
-    cambiando_ref = true;
-    A = 0.05;
+    ref_x1 = 0.05;
+    index = 0;
   }
+
   if (!digitalRead(BTN1)) {
-    t_ref_start = millis();
-    cambiando_ref = true;
-    A = -0.05;
-  }
+    ref_x1 = -0.05;
+    index = 0;
+  };
 
-  // Si estamos en transición, calcular la sigmoide
-  if (cambiando_ref) {
-    float t = (millis() - t_ref_start);  // tiempo en ms
-    ref_x1 = A / (1.0 + exp(-k * (t - 500)));  // t0 = 500 ms de centro
-    // cortar la transición cuando esté suficientemente cerca
-    if (fabs(ref_x1 - A) < 0.001) {
-      ref_x1 = A;
-      cambiando_ref = false;
-    }
-  }
 
-  /*
-  if (!digitalRead(BTN2)) ref_x1 = 0.08;
-  if (!digitalRead(BTN1)) ref_x1 = -0.08;
+  // if (index < 20){
+  //   ref_sigmoidal = ref_x1 * secuencia_sigmoidal[index];
+  //   index++;
+  // } else {
+  //   ref_sigmoidal = ref_x1;
+  // };
 
-  static float ref_x1_filt = 0;
+  // Variable global o parámetro que controla la duración
+  int duration_multiplier = 2;  // Puedes cambiar este valor según lo necesites
 
-  const float vel_max_ref = 0.001;  // m por ciclo (~0.1 m/s si ciclo de 20 ms)
-  if (ref_x1_filt < ref_x1)
-    ref_x1_filt += vel_max_ref;
-  else if (ref_x1_filt > ref_x1)
-    ref_x1_filt -= vel_max_ref;
-  */
+  if (index < (20 * duration_multiplier)) {
+    // Escalamos el índice para que recorra la secuencia en más tiempo
+    int scaled_index = index / duration_multiplier;
+    ref_sigmoidal = ref_x1 * secuencia_sigmoidal[scaled_index];
+    index++;
+  } else {
+    ref_sigmoidal = ref_x1;
+  };
+
+  // int duration_multiplier = 3; // Ejemplo: 3 veces más lento
+  // int total_steps = 20 * duration_multiplier;
+
+  // if (index < total_steps) {
+  //     float progress = (float)index / (float)total_steps; // 0 a 1
+  //     int seq_index = (int)(progress * 19); // Mapear a 0-19
+  //     ref_sigmoidal = ref_x1 * secuencia_sigmoidal[seq_index];
+  //     index++;
+  // } else {
+  //     ref_sigmoidal = ref_x1;
+  // };
+
+
+
+
+
+
 
 
   ref_x3 = 0;
 
   //Controladores y observador
   observador(u, posicion, angulo);
-  u = state_feedback_int(ref_x1, ref_x3, x1_est_print, x2_est_print, x3_est_print, x4_est_print);
+  u = state_feedback_int(ref_sigmoidal, ref_x3, x1_est_print, x2_est_print, x3_est_print, x4_est_print);
 
   mover_servo(u);
 
   //Datos
-  matlab_send(posicion, x1_est_print, 0 /*Velocidad*/, x2_est_print, angulo, x3_est_print, gyro_x, x4_est_print, ref_x1, q_print);
+  matlab_send(posicion, x1_est_print, 0 /*Velocidad*/, x2_est_print, angulo, x3_est_print, gyro_x, x4_est_print, ref_sigmoidal, q_print);
 
   unsigned long t2 = micros();
 
@@ -174,7 +183,6 @@ void loop() {
 
 float state_feedback_int(float ref_x1, float ref_x3, float x1_est, float x2_est, float x3_est, float x4_est) {
   const float Ts = 0.02;
-  
   //const float K[4] = {-15.1705, -2.7130, -2.7658, -0.1514};
   //const float H = 18.7183;
   //const float K[4] = {-8.5638, -1.6764, -1.6533, -0.1083};
@@ -237,7 +245,7 @@ float state_feedback_int(float ref_x1, float ref_x3, float x1_est, float x2_est,
   q = q + Ts * e;
 
   // Anti-windup
-  const float q_max = 0.1*H;  // ajustar según K[4] y u_max -> qmax = umax / ganancia integrador
+  const float q_max = 20.0;  // ajustar según K[4] y u_max -> qmax = umax / ganancia integrador
   if (q > q_max) q = q_max;
   if (q < -q_max) q = -q_max;
 
@@ -299,7 +307,7 @@ void observador(float u, float x1_med, float x3_med) {
 
   // agregado de filtro de media móvil
 
-  const int N = 2;  // Orden del filtro de media móvil
+  const int N = 5;  // Orden del filtro de media móvil
   static float buffer_x1[N] = { 0 }, buffer_x2[N] = { 0 }, buffer_x3[N] = { 0 }, buffer_x4[N] = { 0 };
   static int idx = 0;
 
