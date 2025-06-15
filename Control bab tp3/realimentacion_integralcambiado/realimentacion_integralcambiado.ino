@@ -38,6 +38,15 @@ void observador(float u, float x1_med, float x3_med);
 void matlab_send(float dato1, float dato2, float dato3, float dato4, float dato5, float dato6, float dato7, float dato8, float dato9, float dato10);
 float state_feedback_int(float ref_x1, float ref_x3, float x1_est, float x2_est, float x3_est, float x4_est);
 
+static float secuencia_sigmoidal[40] = {
+    0.002473, 0.003360, 0.004566, 0.006200, 0.008415, 0.011413,
+    0.015461, 0.020915, 0.028237, 0.038024, 0.051025, 0.068155,
+    0.090488, 0.119203, 0.155473, 0.200269, 0.254089, 0.316646,
+    0.386621, 0.461614, 0.538386, 0.613379, 0.683354, 0.745911,
+    0.799731, 0.844527, 0.880797, 0.909512, 0.931845, 0.948975,
+    0.961976, 0.971763, 0.979085, 0.984539, 0.988587, 0.991585,
+    0.993800, 0.995434, 0.996640, 0.997527
+};
 
 void setup(void) {
   Serial.begin(115200);
@@ -85,6 +94,11 @@ void loop() {
   static float u = 0;
   float posicion = 0;
 
+  static unsigned int index = 0;
+  static float ref_sigmoidal = 0;
+  static float ref_x1_ant = 0; 
+
+
   unsigned long t1 = micros();
 
   //Medicion de angulo
@@ -109,59 +123,66 @@ void loop() {
   //Referencia
   //ref_x1 = analogRead(A0)*(2*0.52/1024.0) - 0.52;
   
-  // Variables estáticas para la referencia sigmoidal
-  static unsigned long t_ref_start = 0;
-  static bool cambiando_ref = false;
-  static float A = 0.08;  // amplitud del escalón deseado
-  const float k = 0.01;   // pendiente de la sigmoide (ajustable)
-
-  // Inicio de transición
-  if (!digitalRead(BTN2)) {
-    t_ref_start = millis();
-    cambiando_ref = true;
-    A = 0.05;
-  }
-  if (!digitalRead(BTN1)) {
-    t_ref_start = millis();
-    cambiando_ref = true;
-    A = -0.05;
-  }
-
-  // Si estamos en transición, calcular la sigmoide
-  if (cambiando_ref) {
-    float t = (millis() - t_ref_start);  // tiempo en ms
-    ref_x1 = A / (1.0 + exp(-k * (t - 500)));  // t0 = 500 ms de centro
-    // cortar la transición cuando esté suficientemente cerca
-    if (fabs(ref_x1 - A) < 0.001) {
-      ref_x1 = A;
-      cambiando_ref = false;
-    }
-  }
-
   /*
   if (!digitalRead(BTN2)) ref_x1 = 0.08;
   if (!digitalRead(BTN1)) ref_x1 = -0.08;
 
   static float ref_x1_filt = 0;
 
-  const float vel_max_ref = 0.001;  // m por ciclo (~0.1 m/s si ciclo de 20 ms)
+  const float vel_max_ref = 0.002;  // m por ciclo (~0.1 m/s si ciclo de 20 ms)
   if (ref_x1_filt < ref_x1)
     ref_x1_filt += vel_max_ref;
   else if (ref_x1_filt > ref_x1)
     ref_x1_filt -= vel_max_ref;
   */
+  
+  static bool flag = false;
+  static bool flag1 = false;
 
+  if (!digitalRead(BTN2) && (flag == false)){
+    ref_x1_ant = ref_x1;
+    ref_x1 = 0.08;
+    index = 0;
+    flag = true;
+  }
+
+  if(digitalRead(BTN2)){
+    flag = false;
+  }
+
+  if (!digitalRead(BTN1) && (flag1 == false)) {
+    ref_x1_ant = ref_x1;
+    ref_x1 = -0.08;
+    index = 0;
+    flag1 = true;
+  }
+
+  if(digitalRead(BTN1)){
+    flag1 = false;
+  }
+
+  // Variable global o parámetro que controla la duración
+  int duration_multiplier = 5;  // Puedes cambiar este valor según lo necesites
+
+  if (index < (40 * duration_multiplier)) {
+    // Escalamos el índice para que recorra la secuencia en más tiempo
+    int scaled_index = index / duration_multiplier;
+    ref_sigmoidal = (ref_x1 - ref_x1_ant) * secuencia_sigmoidal[scaled_index] + ref_x1_ant;
+    index++;
+  } else {
+    ref_sigmoidal = ref_x1;
+  };
 
   ref_x3 = 0;
 
   //Controladores y observador
   observador(u, posicion, angulo);
-  u = state_feedback_int(ref_x1, ref_x3, x1_est_print, x2_est_print, x3_est_print, x4_est_print);
+  u = state_feedback_int(ref_sigmoidal, ref_x3, x1_est_print, x2_est_print, x3_est_print, x4_est_print);
 
   mover_servo(u);
 
   //Datos
-  matlab_send(posicion, x1_est_print, 0 /*Velocidad*/, x2_est_print, angulo, x3_est_print, gyro_x, x4_est_print, ref_x1, q_print);
+  matlab_send(posicion, x1_est_print, 0 /*Velocidad*/, x2_est_print, angulo, x3_est_print, gyro_x, x4_est_print, ref_sigmoidal, q_print);
 
   unsigned long t2 = micros();
 
