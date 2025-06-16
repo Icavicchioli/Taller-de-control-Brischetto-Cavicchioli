@@ -43,7 +43,7 @@ Ld = place(Ad',Cd',polos_discretos)';
 eig(Ad - Ld*Cd);    
 
 %% Observador para ss integral
-polos_continuos_int = -[2.7 2.4 2.5 2.6] *12.4289;  
+polos_continuos_int = -[3.5 3.5 2.7 2.7] *12.4289;  
 polos_discretos_int = exp(polos_continuos_int*Ts);
 
 Ld_int = place(Ad',Cd',polos_discretos_int)';
