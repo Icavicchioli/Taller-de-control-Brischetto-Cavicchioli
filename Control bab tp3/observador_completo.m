@@ -38,9 +38,16 @@ rank(obsv(Ad,Cd))
 
 %%
 % ahora que tenemos los polos buscamos el L discreto
- 
+
 Ld = place(Ad',Cd',polos_discretos)';
-eig(Ad - Ld*Cd);
+eig(Ad - Ld*Cd);    
+
+%% Observador para ss integral
+polos_continuos_int = -[2.7 2.4 2.5 2.6] *12.4289;  
+polos_discretos_int = exp(polos_continuos_int*Ts);
+
+Ld_int = place(Ad',Cd',polos_discretos_int)';
+eig(Ad - Ld_int*Cd);
 
 %% Graficos hechos con obs -[4 4 3.5 3.5] *12.4289
 clc ;close all;
