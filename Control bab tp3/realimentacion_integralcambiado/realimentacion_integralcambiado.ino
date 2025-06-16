@@ -116,14 +116,12 @@ void loop() {
 
   //Medicion de posicion
   posicion = (sonar.ping()) * (0.343 / 2.0) * (1.0 / 1000.0);  // microseg a m
-
-
   posicion -= 0.157;  //ajusto el cero
 
   //Referencia
   //ref_x1 = analogRead(A0)*(2*0.52/1024.0) - 0.52;
   
-  /*
+  
   if (!digitalRead(BTN2)) ref_x1 = 0.08;
   if (!digitalRead(BTN1)) ref_x1 = -0.08;
 
@@ -134,8 +132,8 @@ void loop() {
     ref_x1_filt += vel_max_ref;
   else if (ref_x1_filt > ref_x1)
     ref_x1_filt -= vel_max_ref;
-  */
   
+  /*
   static bool flag = false;
   static bool flag1 = false;
 
@@ -172,17 +170,17 @@ void loop() {
   } else {
     ref_sigmoidal = ref_x1;
   };
-
+*/
   ref_x3 = 0;
 
   //Controladores y observador
   observador(u, posicion, angulo);
-  u = state_feedback_int(ref_sigmoidal, ref_x3, x1_est_print, x2_est_print, x3_est_print, x4_est_print);
+  u = state_feedback_int(ref_x1_filt, ref_x3, x1_est_print, x2_est_print, x3_est_print, x4_est_print);
 
   mover_servo(u);
 
   //Datos
-  matlab_send(posicion, x1_est_print, 0 /*Velocidad*/, x2_est_print, angulo, x3_est_print, gyro_x, x4_est_print, ref_sigmoidal, q_print);
+  matlab_send(posicion, x1_est_print, 0 /*Velocidad*/, x2_est_print, angulo, x3_est_print, gyro_x, x4_est_print, ref_x1_filt, q_print);
 
   unsigned long t2 = micros();
 
@@ -312,14 +310,14 @@ void observador(float u, float x1_med, float x3_med) {
   x4_est = Ad[3][0] * x1_est + Ad[3][1] * x2_est + Ad[3][2] * x3_est + Ad[3][3] * x4_est + Ld[3][0] * (y1_med - y1_est) + Ld[3][1] * (y2_med - y2_est) + Bd[3] * u;
 
   //Variables de ploteo
-  //x1_est_print = x1_est;
-  //x2_est_print = x2_est;
-  //x3_est_print = x3_est;
-  //x4_est_print = x4_est;
-
+  /*x1_est_print = x1_est;
+  x2_est_print = x2_est;
+  x3_est_print = x3_est;
+  x4_est_print = x4_est;
+*/
 
   // agregado de filtro de media móvil
-
+  
   const int N = 2;  // Orden del filtro de media móvil
   static float buffer_x1[N] = { 0 }, buffer_x2[N] = { 0 }, buffer_x3[N] = { 0 }, buffer_x4[N] = { 0 };
   static int idx = 0;
@@ -344,6 +342,7 @@ void observador(float u, float x1_med, float x3_med) {
   x2_est_print = sum_x2 / N;
   x3_est_print = sum_x3 / N;
   x4_est_print = sum_x4 / N;
+  
 }
 
 
