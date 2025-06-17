@@ -88,7 +88,6 @@ float x4_est_print = 0;
 float q_print = 0;
 
 void loop() {
-
   static float ref_x1 = 0;
   static float ref_x3 = 0;
   static float angulo = 0;
@@ -102,10 +101,9 @@ void loop() {
   static float ref_sigmoidal = 0;
   static float ref_x1_ant = 0; 
 
-
   unsigned long t1 = micros();
 
-  //Medicion de angulo
+  //Medición de sensores
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
 
@@ -118,43 +116,37 @@ void loop() {
 
   angulo = (1 - ALFA) * angulo_gyro + ALFA * angulo_accel;  // en radianes
 
-  //Medicion de posicion
+  //Medición de posición
   posicion = (sonar.ping()) * (0.343 / 2.0) * (1.0 / 1000.0);  // microseg a m
   posicion -= 0.157;  //ajusto el cero
 
-  //Referencia
-  //ref_x1 = analogRead(A0)*(2*0.52/1024.0) - 0.52;
-  
+  // --- FILTRO DE MEDICIONES ---
+  const float alpha = 0.1;  // Ajustar según nivel de ruido
+
+  static float x1_filtrado = 0.0;
+  static float x3_filtrado = 0.0;
+
+  x1_filtrado = alpha * posicion + (1.0 - alpha) * x1_filtrado;
+  x3_filtrado = alpha * angulo   + (1.0 - alpha) * x3_filtrado;
+  // -----------------------------
+
+  // Referencia
   #if CON_FF == 0
     if (!digitalRead(BTN2)) ref_x1 = 0.08;
     if (!digitalRead(BTN1)) ref_x1 = -0.08;
-
   #else
-    //Secuencia de referencias tipo escalon
     cnt_ciclo++;
 
-    if(cnt_ciclo == 1){
-      ref_x1 = 0.0; 
-    }
-    if(cnt_ciclo == 400){
-      ref_x1 = 0.08;  
-    }
-    if(cnt_ciclo == 800){ 
-      ref_x1 = -0.08; 
-    }
-    if(cnt_ciclo == 1200){ 
-      ref_x1 = 0.08; 
-    }
-    if(cnt_ciclo == 1600){ 
-      ref_x1 = -0.08;  
-      cnt_ciclo = 400;
-    }
-  
+    if(cnt_ciclo == 1){ ref_x1 = 0.0; }
+    if(cnt_ciclo == 400){ ref_x1 = 0.08; }
+    if(cnt_ciclo == 800){ ref_x1 = -0.08; }
+    if(cnt_ciclo == 1200){ ref_x1 = 0.08; }
+    if(cnt_ciclo == 1600){ ref_x1 = -0.08; cnt_ciclo = 400; }
   #endif
 
   static float ref_x1_filt = 0;
+  const float vel_max_ref = 0.00228;  // m por ciclo
 
-  const float vel_max_ref = /*0.002*/ 0.00228;  // m por ciclo (~0.1 m/s si ciclo de 20 ms)
   if (ref_x1_filt < ref_x1)
     ref_x1_filt += vel_max_ref;
   else if (ref_x1_filt > ref_x1)
@@ -162,68 +154,26 @@ void loop() {
 
   if(abs(ref_x1_filt - ref_x1) <= vel_max_ref)
     ref_x1_filt = ref_x1;
-  
-  
-  /*
-  static bool flag = false;
-  static bool flag1 = false;
-
-  if (!digitalRead(BTN2) && (flag == false)){
-    ref_x1_ant = ref_x1;
-    ref_x1 = 0.08;
-    index = 0;
-    flag = true;
-  }
-
-  if(digitalRead(BTN2)){
-    flag = false;
-  }
-
-  if (!digitalRead(BTN1) && (flag1 == false)) {
-    ref_x1_ant = ref_x1;
-    ref_x1 = -0.08;
-    index = 0;
-    flag1 = true;
-  }
-
-  if(digitalRead(BTN1)){
-    flag1 = false;
-  }
-
-  // Variable global o parámetro que controla la duración
-  int duration_multiplier = 5;  // Puedes cambiar este valor según lo necesites
-
-  if (index < (40 * duration_multiplier)) {
-    // Escalamos el índice para que recorra la secuencia en más tiempo
-    int scaled_index = index / duration_multiplier;
-    ref_sigmoidal = (ref_x1 - ref_x1_ant) * secuencia_sigmoidal[scaled_index] + ref_x1_ant;
-    index++;
-  } else {
-    ref_sigmoidal = ref_x1;
-  };
-*/
-
-  
 
   ref_x3 = 0;
 
-  //Controladores y observador
-  observador(u, posicion, angulo);
+  // Controladores y observador con mediciones filtradas
+  observador(u, x1_filtrado, x3_filtrado);
   u = state_feedback_int(ref_x1_filt, ref_x3, x1_est_print, x2_est_print, x3_est_print, x4_est_print);
 
   mover_servo(u);
 
-  //Datos
-  matlab_send(posicion, x1_est_print, 0 /*Velocidad*/, x2_est_print, angulo, x3_est_print, gyro_x, x4_est_print, ref_x1_filt, q_print);
+  // Datos para MATLAB
+  matlab_send(posicion, x1_est_print, 0, x2_est_print, angulo, x3_est_print, gyro_x, x4_est_print, ref_x1_filt, q_print);
 
   unsigned long t2 = micros();
-
   unsigned long diff = t2 - t1;
   unsigned long diffUS = diff % 1000;
 
   delay(20 - (diff - diffUS) / 1000);
   delayMicroseconds(diffUS);
 }
+
 
 float state_feedback_int(float ref_x1, float ref_x3, float x1_est, float x2_est, float x3_est, float x4_est) {
   const float Ts = 0.02;
@@ -371,13 +321,14 @@ void observador(float u, float x1_med, float x3_med) {
   x2_est = Ad[1][0] * x1_est + Ad[1][1] * x2_est + Ad[1][2] * x3_est + Ad[1][3] * x4_est + Ld[1][0] * (y1_med - y1_est) + Ld[1][1] * (y2_med - y2_est) + Bd[1] * u;
   x3_est = Ad[2][0] * x1_est + Ad[2][1] * x2_est + Ad[2][2] * x3_est + Ad[2][3] * x4_est + Ld[2][0] * (y1_med - y1_est) + Ld[2][1] * (y2_med - y2_est) + Bd[2] * u;
   x4_est = Ad[3][0] * x1_est + Ad[3][1] * x2_est + Ad[3][2] * x3_est + Ad[3][3] * x4_est + Ld[3][0] * (y1_med - y1_est) + Ld[3][1] * (y2_med - y2_est) + Bd[3] * u;
-/*
+
   //Variables de ploteo
   x1_est_print = x1_est;
   x2_est_print = x2_est;
   x3_est_print = x3_est;
   x4_est_print = x4_est;
-*/
+
+/*
 
   // agregado de filtro de media móvil
   
@@ -405,7 +356,7 @@ void observador(float u, float x1_med, float x3_med) {
   x2_est_print = sum_x2 / N;
   x3_est_print = sum_x3 / N;
   x4_est_print = sum_x4 / N;
-  
+  */
 }
 
 
