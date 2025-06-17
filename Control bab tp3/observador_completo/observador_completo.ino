@@ -100,7 +100,7 @@ void loop() {
   //Referencia
   #if PRUEBA == 1
     ref = analogRead(A0)*(2*0.52/1024.0) - 0.52; 
-    u = 0; 
+    u = 0.26; 
   #else 
     cnt_ciclo++;
 
@@ -204,6 +204,13 @@ float observador(float u, float x1_med, float x3_med){
                          {0, 0.7963},
                          {0, -1.3004}};
 
+  //[-3.81 -1 -10.37+1i -10.37-1i] * 3.5
+  /*
+  const float Ld[4][2] = {{0.4957, -0.1176},
+                          {-0.1834, 0.2237},
+                          {-0.0174, 0.3496},
+                          {-0.2290, -3.9651}};
+*/
   static float x1_est = 0, x2_est = 0, x3_est = 0, x4_est = 0;
 
   //Cambio de notacion
