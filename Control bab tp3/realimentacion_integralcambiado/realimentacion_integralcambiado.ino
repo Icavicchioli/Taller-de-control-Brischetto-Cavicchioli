@@ -203,7 +203,6 @@ void loop() {
   };
 */
 
-  
 
   ref_x3 = 0;
 
@@ -325,23 +324,29 @@ void observador(float u, float x1_med, float x3_med) {
 
   const float Bd[4] = { 0, 0, 0, 1.2978 };
 
-
-  //mas lento -[2.7 2.4 2.5 2.6] *12.4289
   /*
+  //mas lento -[2.7 2.4 2.5 2.6] *12.4289
   const float Ld[4][2] = { { 0.8744, -0.0392 },
                            { 7.9568, -0.6022 },
                            { -0.0008, 0.5116 },
                            { -0.0020, -2.9808 } };
+  */
+  
+
+  // -[3.8 3.2 3 2.6] *12.4289 //Funciona
+  /*
+  const float Ld[4][2] = {{1.0585, -0.0740},
+                         {11.9768 , -1.5409},
+                         {-0.0035, 0.6119},
+                         {-0.0174, -2.6687}};
 
   */
-
-  //intermedio  -[3.5 3.5 2.7 2.7] *12.4289
-  
+      
+  //intermedio  -[3.5 3.5 2.7 2.7] *12.4289 //Funciona
   const float Ld[4][2] = {{0.9938, 0},
                          {10.4178 , 0.1756},
                          {0, 0.6551},
                          {0, -2.4737}};
-  
 
   //rapido  -[4 4 3.5 3.5] *12.4289
   /*
@@ -359,6 +364,8 @@ void observador(float u, float x1_med, float x3_med) {
                          {-0.0017, -2.48}};
    */
 
+
+
   static float x1_est = 0, x2_est = 0, x3_est = 0, x4_est = 0;
 
   //Cambio de notacion
@@ -371,16 +378,15 @@ void observador(float u, float x1_med, float x3_med) {
   x2_est = Ad[1][0] * x1_est + Ad[1][1] * x2_est + Ad[1][2] * x3_est + Ad[1][3] * x4_est + Ld[1][0] * (y1_med - y1_est) + Ld[1][1] * (y2_med - y2_est) + Bd[1] * u;
   x3_est = Ad[2][0] * x1_est + Ad[2][1] * x2_est + Ad[2][2] * x3_est + Ad[2][3] * x4_est + Ld[2][0] * (y1_med - y1_est) + Ld[2][1] * (y2_med - y2_est) + Bd[2] * u;
   x4_est = Ad[3][0] * x1_est + Ad[3][1] * x2_est + Ad[3][2] * x3_est + Ad[3][3] * x4_est + Ld[3][0] * (y1_med - y1_est) + Ld[3][1] * (y2_med - y2_est) + Bd[3] * u;
-/*
+
   //Variables de ploteo
   x1_est_print = x1_est;
   x2_est_print = x2_est;
   x3_est_print = x3_est;
   x4_est_print = x4_est;
-*/
 
   // agregado de filtro de media móvil
-  
+/*  
   const int N = 4;  // Orden del filtro de media móvil
   static float buffer_x1[N] = { 0 }, buffer_x2[N] = { 0 }, buffer_x3[N] = { 0 }, buffer_x4[N] = { 0 };
   static int idx = 0;
@@ -405,7 +411,8 @@ void observador(float u, float x1_med, float x3_med) {
   x2_est_print = sum_x2 / N;
   x3_est_print = sum_x3 / N;
   x4_est_print = sum_x4 / N;
-  
+  */
+
 }
 
 
