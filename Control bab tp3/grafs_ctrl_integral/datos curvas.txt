@@ -1,0 +1,5 @@
+observador 
+intermedio  -[3.5 3.5 2.7 2.7] *12.4289 
+Controlador
+//[-4.5-0.1j; -4.5+0.1j; -10; -10.1; -10.05] 
+filtro alfa = 0.9
