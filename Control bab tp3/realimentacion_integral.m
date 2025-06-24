@@ -34,17 +34,17 @@ Ad_aug = [Ad , zeros([4,1]);
 Bd_aug = [Bd; 0];
 
 %Hago el pole placement para hallar K_aug (el ultimo es k_integral)
-polos_nuevos = [-8-3j; -8+3j; -20; -20.1; -];
+polos_nuevos = [-4.5-0.1j, -4.5+0.1j, -10, -10.1, -10.05];
 polos_discretos = exp(Ts*polos_nuevos);
 
 K_aug = place(Ad_aug, -Bd_aug, polos_discretos)
 
 %Calculo la ganancia N 
 
-
-%Graficos
-P = zpk([], polos_nuevos, 1);
+%% Graficos
+P = zpk([], polos_nuevos, prod(abs(polos_nuevos)));
 figure();
 step(P);
-
+grid on;
+set(findall(gcf,'type','line'),'linewidth', 2);
 

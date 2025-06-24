@@ -44,11 +44,12 @@ eig(Ad - Ld*Cd);
 
 %% Observador para ss integral
 %polos_continuos_int = -[3.8 3.2 3 2.6] *12.4289;  
+%%[-13 -12 (-10.37+1i)*3.5 (-10.37-1i)*3.5];
 
-polos_continuos_int = [-20 -20 (-10.37+1i)*3.5 (-10.37-1i)*3.5] ;
+polos_continuos_int = [-20 -20 (-12+3i) (-12-3i)];
 polos_discretos_int = exp(polos_continuos_int*Ts);
 
-Ld_int = place(Ad',Cd',polos_discretos_int)';
+Ld_int = place(Ad',Cd',polos_discretos_int)'
 eig(Ad - Ld_int*Cd);
 
 %% Graficos hechos con obs -[4 4 3.5 3.5] *12.4289
