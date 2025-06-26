@@ -39,8 +39,7 @@ Ld = place(Ad',Cd',polos_discretos)'
 
 Ld = [1.1349 0;13.9806 0.1756;0 0.7963;0 -1.3004];% los usados en el arduino
 
-%% 
-% Prueba que funcione el observador - gracias chatgpt
+%%
 
 N = 100;
 x_real = zeros(4,N);
